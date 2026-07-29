@@ -1,61 +1,59 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Seguimiento Taller</title>
-
-
+<title>Atlas Copco - Seguimiento Taller</title>
 
 <style>
 
 body{
-    font-family:Segoe UI,Arial,sans-serif;
-    background:#f4f6f9;
+    font-family:Segoe UI,Arial;
     margin:0;
+    background:#f5f6f8;
 }
 
 .header{
     background:#004B87;
     color:white;
-    padding:15px;
+    padding:20px;
 }
 
 .container{
     padding:20px;
 }
 
-.card{
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:20px;
-    box-shadow:0 2px 6px rgba(0,0,0,.1);
-}
-
 .kpis{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
     gap:15px;
+    margin-bottom:20px;
 }
 
 .kpi{
     background:white;
-    border-radius:10px;
     padding:15px;
+    border-radius:10px;
     text-align:center;
-    box-shadow:0 2px 6px rgba(0,0,0,.1);
-}
-
-.kpi h3{
-    margin:0;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
 }
 
 .kpi span{
-    font-size:30px;
+    display:block;
+    font-size:32px;
     font-weight:bold;
     color:#004B87;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
 }
 
 .grid{
@@ -64,7 +62,9 @@ body{
     gap:10px;
 }
 
-input,select,textarea{
+input,
+select,
+textarea{
     width:100%;
     padding:10px;
     border:1px solid #ccc;
@@ -76,8 +76,8 @@ button{
     border:none;
     padding:10px 15px;
     border-radius:5px;
-    cursor:pointer;
     color:white;
+    cursor:pointer;
 }
 
 .btn-save{
@@ -103,8 +103,8 @@ th{
 }
 
 th,td{
+    padding:10px;
     border:1px solid #ddd;
-    padding:8px;
 }
 
 .progress{
@@ -114,12 +114,11 @@ th,td{
 }
 
 .progress-bar{
-    height:24px;
     color:white;
-    font-size:12px;
-    font-weight:bold;
     text-align:center;
+    font-size:12px;
     line-height:24px;
+    height:24px;
 }
 
 .low{
@@ -134,19 +133,10 @@ th,td{
     background:#28a745;
 }
 
-.badge{
-    color:white;
-    padding:5px 10px;
-    border-radius:20px;
-    font-size:12px;
-}
-
-canvas{
-    max-height:350px;
-}
-
 </style>
+
 </head>
+
 <body>
 
 <div class="header">
@@ -158,22 +148,22 @@ canvas{
 <div class="kpis">
 
 <div class="kpi">
-<h3>Total Equipos</h3>
+Total Equipos
 <span id="kpiTotal">0</span>
 </div>
 
 <div class="kpi">
-<h3>En Proceso</h3>
+En Proceso
 <span id="kpiProceso">0</span>
 </div>
 
 <div class="kpi">
-<h3>Terminados</h3>
+Terminados
 <span id="kpiTerminados">0</span>
 </div>
 
 <div class="kpi">
-<h3>Retrasados</h3>
+Retrasados
 <span id="kpiRetrasados">0</span>
 </div>
 
@@ -191,7 +181,7 @@ canvas{
 
 <input id="serial" placeholder="Serial">
 
-<select id="estado">
+<select id="status">
 
 <option>Recepcionado</option>
 <option>Diagnóstico</option>
@@ -208,9 +198,9 @@ canvas{
 <input
 type="number"
 id="progreso"
-placeholder="Progreso %"
 min="0"
-max="100">
+max="100"
+placeholder="Progreso %">
 
 </div>
 
@@ -218,7 +208,7 @@ max="100">
 
 <textarea
 id="observaciones"
-rows="3"
+rows="4"
 placeholder="Observaciones"></textarea>
 
 <br><br>
@@ -226,7 +216,7 @@ placeholder="Observaciones"></textarea>
 <button
 id="btnGuardar"
 class="btn-save"
-onclick="guardarEquipo()">
+onclick="guardarRegistro()">
 
 Guardar Registro
 
@@ -239,7 +229,7 @@ Guardar Registro
 <input
 id="buscar"
 placeholder="Buscar..."
-onkeyup="filtrar()">
+onkeyup="filtrarTabla()">
 
 </div>
 
@@ -250,16 +240,14 @@ onkeyup="filtrar()">
 <thead>
 
 <tr>
-
 <th>Cliente</th>
 <th>Equipo</th>
 <th>Serial</th>
-<th>estado</th>
+<th>Status</th>
 <th>Fecha</th>
 <th>Progreso</th>
 <th>Observaciones</th>
 <th>Acciones</th>
-
 </tr>
 
 </thead>
@@ -267,14 +255,6 @@ onkeyup="filtrar()">
 <tbody id="tabla"></tbody>
 
 </table>
-
-</div>
-
-<div class="card">
-
-<h3>Equipos por Estado</h3>
-
-<canvas id="grafico"></canvas>
 
 </div>
 
@@ -288,34 +268,29 @@ const URL =
 const APIKEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
 
-let grafico = null;
+let editando = null;
 
-let registroEditando = null;
-
-function getHeaders(){
+function headers(){
 
     return {
 
-        apikey: APIKEY,
+        apikey:APIKEY,
 
         Authorization:
         `Bearer ${APIKEY}`
 
     };
-
 }
 
-async function cargarEquipos(){
+async function cargarDatos(){
 
     const response =
     await fetch(
 
-        URL + "/rest/v1/equipos?select=*",
+        `${URL}/rest/v1/equipos?select=*`,
 
         {
-
-            headers:getHeaders()
-
+            headers:headers()
         }
 
     );
@@ -326,41 +301,41 @@ async function cargarEquipos(){
     mostrarTabla(datos);
 
     actualizarKPIs(datos);
-
-    actualizarGrafico(datos);
-
 }
 
-async function guardarEquipo(){
+async function guardarRegistro(){
 
     const registro = {
 
-        cliente: cliente.value,
-        equipo: equipo.value,
-        serial: serial.value,
-        estado: estado.value,
-        fecha_estimada: fecha.value,
-        progreso: Number(progreso.value),
-        observaciones: observaciones.value
+        cliente:cliente.value,
+
+        equipo:equipo.value,
+
+        serial:serial.value,
+
+        status:status.value,
+
+        fecha_estimada:fecha.value,
+
+        progreso:Number(progreso.value),
+
+        observaciones:observaciones.value
 
     };
 
-    if(registroEditando){
+    if(editando){
 
         await fetch(
 
-            URL +
-            "/rest/v1/equipos?id=eq." +
-            registroEditando,
+            `${URL}/rest/v1/equipos?id=eq.${editando}`,
 
             {
 
                 method:"PATCH",
 
                 headers:{
-                    ...getHeaders(),
-                    "Content-Type":
-                    "application/json"
+                    ...headers(),
+                    "Content-Type":"application/json"
                 },
 
                 body:
@@ -370,30 +345,27 @@ async function guardarEquipo(){
 
         );
 
-        registroEditando = null;
+        editando = null;
 
         btnGuardar.innerText =
         "Guardar Registro";
 
         tituloFormulario.innerText =
         "Nuevo Registro";
-
     }
-
     else{
 
         await fetch(
 
-            URL + "/rest/v1/equipos",
+            `${URL}/rest/v1/equipos`,
 
             {
 
                 method:"POST",
 
                 headers:{
-                    ...getHeaders(),
-                    "Content-Type":
-                    "application/json"
+                    ...headers(),
+                    "Content-Type":"application/json"
                 },
 
                 body:
@@ -402,13 +374,11 @@ async function guardarEquipo(){
             }
 
         );
-
     }
 
     limpiarFormulario();
 
-    cargarEquipos();
-
+    cargarDatos();
 }
 
 async function editar(id){
@@ -416,13 +386,11 @@ async function editar(id){
     const response =
     await fetch(
 
-        URL +
-        "/rest/v1/equipos?id=eq." +
-        id,
+        `${URL}/rest/v1/equipos?id=eq.${id}`,
 
         {
 
-            headers:getHeaders()
+            headers:headers()
 
         }
 
@@ -433,12 +401,12 @@ async function editar(id){
 
     const r = datos[0];
 
-    registroEditando = id;
+    editando = id;
 
     cliente.value = r.cliente;
     equipo.value = r.equipo;
     serial.value = r.serial;
-    estado.value = r.estado;
+    status.value = r.status;
     fecha.value = r.fecha_estimada;
     progreso.value = r.progreso;
     observaciones.value = r.observaciones;
@@ -448,32 +416,135 @@ async function editar(id){
 
     tituloFormulario.innerText =
     "Editar Registro";
-
 }
 
 async function eliminar(id){
 
-    if(!confirm("Eliminar registro?"))
+    if(!confirm("¿Eliminar registro?"))
         return;
 
     await fetch(
 
-        URL +
-        "/rest/v1/equipos?id=eq." +
-        id,
+        `${URL}/rest/v1/equipos?id=eq.${id}`,
 
         {
 
             method:"DELETE",
 
-            headers:getHeaders()
+            headers:headers()
 
         }
 
     );
 
-    cargarEquipos();
+    cargarDatos();
+}
 
+function mostrarTabla(datos){
+
+    tabla.innerHTML = "";
+
+    datos.forEach(r=>{
+
+        let color = "high";
+
+        if(r.progreso < 40){
+
+            color = "low";
+
+        }else if(r.progreso < 80){
+
+            color = "mid";
+        }
+
+        tabla.innerHTML += `
+
+        <tr>
+
+        <td>${r.cliente}</td>
+        <td>${r.equipo}</td>
+        <td>${r.serial}</td>
+        <td>${r.status}</td>
+        <td>${r.fecha_estimada || ""}</td>
+
+        <td>
+
+            <div class="progress">
+
+                <div
+                class="progress-bar ${color}"
+                style="width:${r.progreso}%">
+
+                ${r.progreso}%
+
+                </div>
+
+            </div>
+
+        </td>
+
+        <td>${r.observaciones || ""}</td>
+
+        <td>
+
+            <button
+            class="btn-edit"
+            onclick="editar(${r.id})">
+
+            Editar
+
+            </button>
+
+            <button
+            class="btn-delete"
+            onclick="eliminar(${r.id})">
+
+            Eliminar
+
+            </button>
+
+        </td>
+
+        </tr>
+
+        `;
+    });
+}
+
+function actualizarKPIs(datos){
+
+    const total =
+    datos.length;
+
+    const terminados =
+    datos.filter(
+        x=>x.status==="Entregado"
+    ).length;
+
+    const proceso =
+    total - terminados;
+
+    const retrasados =
+    datos.filter(x=>
+
+        x.fecha_estimada &&
+        x.status!=="Entregado" &&
+        new Date(x.fecha_estimada) <
+        new Date()
+
+    ).length;
+
+    kpiTotal.innerText =
+    total;
+
+    kpiProceso.innerText =
+    proceso;
+
+    kpiTerminados.innerText =
+    terminados;
+
+    kpiRetrasados.innerText =
+    retrasados;
 }
 
 function limpiarFormulario(){
@@ -484,168 +555,21 @@ function limpiarFormulario(){
     fecha.value="";
     progreso.value="";
     observaciones.value="";
-    estado.selectedIndex=0;
 
+    status.selectedIndex=0;
 }
 
-function mostrarTabla(datos){
-
-    tabla.innerHTML="";
-
-    datos.forEach(r=>{
-
-        let color="high";
-
-        if(r.progreso<40)
-            color="low";
-        else if(r.progreso<80)
-            color="mid";
-
-        tabla.innerHTML += `
-
-        <tr>
-
-        <td>${r.cliente}</td>
-
-        <td>${r.equipo}</td>
-
-        <td>${r.serial}</td>
-
-        <td>${r.estado}</td>
-
-        <td>${r.fecha_estimada}</td>
-
-        <td>
-
-        <div class="progress">
-
-            <div
-            class="progress-bar ${color}"
-            style="width:${r.progreso}%">
-
-            ${r.progreso}%
-
-            </div>
-
-        </div>
-
-        </td>
-
-        <td>${r.observaciones}</td>
-
-        <td>
-
-        <button
-        class="btn-edit"
-        onclick="editar(${r.id})">
-
-        Editar
-
-        </button>
-
-        <button
-        class="btn-delete"
-        onclick="eliminar(${r.id})">
-
-        Eliminar
-
-        </button>
-
-        </td>
-
-        </tr>
-
-        `;
-
-    });
-
-}
-
-function actualizarKPIs(datos){
-
-    kpiTotal.innerText =
-    datos.length;
-
-    kpiTerminados.innerText =
-    datos.filter(
-        x=>x.estado==="Entregado"
-    ).length;
-
-    kpiProceso.innerText =
-    datos.filter(
-        x=>x.estado!=="Entregado"
-    ).length;
-
-    let hoy = new Date();
-
-    kpiRetrasados.innerText =
-    datos.filter(x=>
-
-        x.estado!=="Entregado"
-
-        &&
-
-        x.fecha_estimada
-
-        &&
-
-        new Date(x.fecha_estimada)<hoy
-
-    ).length;
-
-}
-
-function actualizarGrafico(datos){
-
-    let estados = {};
-
-    datos.forEach(x=>{
-
-        estados[x.estado] =
-        (estados[x.estado]||0)+1;
-
-    });
-
-    if(grafico)
-        grafico.destroy();
-
-    grafico =
-    new Chart(
-
-        document.getElementById("grafico"),
-
-        {
-
-            type:"doughnut",
-
-            data:{
-
-                labels:
-                Object.keys(estados),
-
-                datasets:[{
-
-                    data:
-                    Object.values(estados)
-
-                }]
-
-            }
-
-        }
-
-    );
-
-}
-
-function filtrar(){
+function filtrarTabla(){
 
     const texto =
     buscar.value.toLowerCase();
 
-    document
-    .querySelectorAll("#tabla tr")
-    .forEach(fila=>{
+    const filas =
+    document.querySelectorAll(
+        "#tabla tr"
+    );
+
+    filas.forEach(fila=>{
 
         fila.style.display =
 
@@ -658,10 +582,9 @@ function filtrar(){
         : "none";
 
     });
-
 }
 
-cargarEquipos();
+cargarDatos();
 
 </script>
 
