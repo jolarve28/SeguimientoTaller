@@ -4,16 +4,18 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Atlas Copco - Seguimiento Taller</title>
+<title>Workshop Tracking Dashboard</title>
+
+"></script>
 
 <style>
 
 body{
-    font-family:Segoe UI,Arial;
+    font-family:Segoe UI;
+    background:#f4f6f9;
     margin:0;
-    background:#f5f6f8;
 }
 
 .header{
@@ -28,68 +30,30 @@ body{
 
 .kpis{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
     gap:15px;
-    margin-bottom:20px;
 }
 
 .kpi{
     background:white;
-    padding:15px;
+    padding:20px;
     border-radius:10px;
+    box-shadow:0 2px 5px rgba(0,0,0,.1);
     text-align:center;
-    box-shadow:0 2px 8px rgba(0,0,0,.1);
 }
 
 .kpi span{
-    display:block;
-    font-size:32px;
+    font-size:30px;
     font-weight:bold;
     color:#004B87;
 }
 
 .card{
     background:white;
-    padding:20px;
     border-radius:10px;
-    margin-bottom:20px;
-    box-shadow:0 2px 8px rgba(0,0,0,.1);
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:10px;
-}
-
-input,
-select,
-textarea{
-    width:100%;
-    padding:10px;
-    border:1px solid #ccc;
-    border-radius:5px;
-    box-sizing:border-box;
-}
-
-button{
-    border:none;
-    padding:10px 15px;
-    border-radius:5px;
-    color:white;
-    cursor:pointer;
-}
-
-.btn-save{
-    background:#28a745;
-}
-
-.btn-edit{
-    background:#007bff;
-}
-
-.btn-delete{
-    background:#dc3545;
+    padding:20px;
+    margin-top:20px;
+    box-shadow:0 2px 5px rgba(0,0,0,.1);
 }
 
 table{
@@ -103,22 +67,24 @@ th{
 }
 
 th,td{
-    padding:10px;
     border:1px solid #ddd;
+    padding:10px;
 }
 
-.progress{
+.progress-container{
+    width:100%;
     background:#ddd;
     border-radius:20px;
     overflow:hidden;
 }
 
 .progress-bar{
-    color:white;
-    text-align:center;
-    font-size:12px;
-    line-height:24px;
     height:24px;
+    line-height:24px;
+    text-align:center;
+    color:white;
+    font-size:12px;
+    font-weight:bold;
 }
 
 .low{
@@ -133,6 +99,12 @@ th,td{
     background:#28a745;
 }
 
+.chart-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
 </style>
 
 </head>
@@ -140,7 +112,11 @@ th,td{
 <body>
 
 <div class="header">
-<h1>Atlas Copco Taller</h1>
+
+<h1>
+Atlas Copco Workshop Dashboard
+</h1>
+
 </div>
 
 <div class="container">
@@ -149,112 +125,86 @@ th,td{
 
 <div class="kpi">
 Total Equipos
-<span id="kpiTotal">0</span>
+<br>
+<span id="totalEquipos">0</span>
 </div>
 
 <div class="kpi">
 En Proceso
-<span id="kpiProceso">0</span>
+<br>
+<span id="enProceso">0</span>
 </div>
 
 <div class="kpi">
 Terminados
-<span id="kpiTerminados">0</span>
+<br>
+<span id="terminados">0</span>
 </div>
 
 <div class="kpi">
 Retrasados
-<span id="kpiRetrasados">0</span>
-</div>
-
-</div>
-
-<div class="card">
-
-<h2 id="tituloFormulario">Nuevo Registro</h2>
-
-<div class="grid">
-
-<input id="cliente" placeholder="Cliente">
-
-<input id="equipo" placeholder="Equipo">
-
-<input id="serial" placeholder="Serial">
-
-<select id="status">
-
-<option>Recepcionado</option>
-<option>Diagnóstico</option>
-<option>Esperando Repuestos</option>
-<option>En Reparación</option>
-<option>Pruebas</option>
-<option>Listo para Entrega</option>
-<option>Entregado</option>
-
-</select>
-
-<input type="date" id="fecha">
-
-<input
-type="number"
-id="progreso"
-min="0"
-max="100"
-placeholder="Progreso %">
-
-</div>
-
 <br>
+<span id="retrasados">0</span>
+</div>
 
-<textarea
-id="observaciones"
-rows="4"
-placeholder="Observaciones"></textarea>
-
-<br><br>
-
-<button
-id="btnGuardar"
-class="btn-save"
-onclick="guardarRegistro()">
-
-Guardar Registro
-
-</button>
+<div class="kpi">
+Avance Promedio
+<br>
+<span id="promedio">0%</span>
+</div>
 
 </div>
 
 <div class="card">
 
-<input
-id="buscar"
-placeholder="Buscar..."
-onkeyup="filtrarTabla()">
-
-</div>
-
-<div class="card">
+<h2>Equipos Registrados</h2>
 
 <table>
 
 <thead>
 
 <tr>
+
 <th>Cliente</th>
 <th>Equipo</th>
-<th>Serial</th>
-<th>Status</th>
-<th>Fecha</th>
+<th>Estado</th>
+<th>Fecha Estimada</th>
 <th>Progreso</th>
 <th>Observaciones</th>
-<th>Acciones</th>
+
 </tr>
 
 </thead>
 
-<tbody id="tabla"></tbody>
+<tbody id="tablaEquipos">
+
+</tbody>
 
 </table>
+
+</div>
+
+<div class="chart-grid">
+
+<div class="card">
+
+<h2>
+Equipos por Estado
+</h2>
+
+<canvas id="graficoEstados"></canvas>
+
+</div>
+
+<div class="card">
+
+<h2>
+Equipos por Cliente
+</h2>
+
+<canvas id="graficoClientes"></canvas>
+
+</div>
 
 </div>
 
@@ -262,35 +212,33 @@ onkeyup="filtrarTabla()">
 
 <script>
 
-const URL =
+const SUPABASE_URL =
 "https://tztuhdxkrdkhawknpmci.supabase.co";
 
-const APIKEY =
+const SUPABASE_KEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
 
-let editando = null;
-
-function headers(){
-
-    return {
-
-        apikey:APIKEY,
-
-        Authorization:
-        `Bearer ${APIKEY}`
-
-    };
-}
+let chartEstados;
+let chartClientes;
 
 async function cargarDatos(){
 
     const response =
     await fetch(
 
-        `${URL}/rest/v1/equipos?select=*`,
+        `${SUPABASE_URL}/rest/v1/equipos?select=*`,
 
         {
-            headers:headers()
+
+            headers:{
+
+                apikey:SUPABASE_KEY,
+
+                Authorization:
+                `Bearer ${SUPABASE_KEY}`
+
+            }
+
         }
 
     );
@@ -301,214 +249,66 @@ async function cargarDatos(){
     mostrarTabla(datos);
 
     actualizarKPIs(datos);
-}
 
-async function guardarRegistro(){
+    crearGraficoEstados(datos);
 
-    const registro = {
+    crearGraficoClientes(datos);
 
-        cliente:cliente.value,
-
-        equipo:equipo.value,
-
-        serial:serial.value,
-
-        status:status.value,
-
-        fecha_estimada:fecha.value,
-
-        progreso:Number(progreso.value),
-
-        observaciones:observaciones.value
-
-    };
-
-    if(editando){
-
-        await fetch(
-
-            `${URL}/rest/v1/equipos?id=eq.${editando}`,
-
-            {
-
-                method:"PATCH",
-
-                headers:{
-                    ...headers(),
-                    "Content-Type":"application/json"
-                },
-
-                body:
-                JSON.stringify(registro)
-
-            }
-
-        );
-
-        editando = null;
-
-        btnGuardar.innerText =
-        "Guardar Registro";
-
-        tituloFormulario.innerText =
-        "Nuevo Registro";
-    }
-    else{
-
-        await fetch(
-
-            `${URL}/rest/v1/equipos`,
-
-            {
-
-                method:"POST",
-
-                headers:{
-                    ...headers(),
-                    "Content-Type":"application/json"
-                },
-
-                body:
-                JSON.stringify(registro)
-
-            }
-
-        );
-    }
-
-    limpiarFormulario();
-
-    cargarDatos();
-}
-
-async function editar(id){
-
-    const response =
-    await fetch(
-
-        `${URL}/rest/v1/equipos?id=eq.${id}`,
-
-        {
-
-            headers:headers()
-
-        }
-
-    );
-
-    const datos =
-    await response.json();
-
-    const r = datos[0];
-
-    editando = id;
-
-    cliente.value = r.cliente;
-    equipo.value = r.equipo;
-    serial.value = r.serial;
-    status.value = r.status;
-    fecha.value = r.fecha_estimada;
-    progreso.value = r.progreso;
-    observaciones.value = r.observaciones;
-
-    btnGuardar.innerText =
-    "Actualizar";
-
-    tituloFormulario.innerText =
-    "Editar Registro";
-}
-
-async function eliminar(id){
-
-    if(!confirm("¿Eliminar registro?"))
-        return;
-
-    await fetch(
-
-        `${URL}/rest/v1/equipos?id=eq.${id}`,
-
-        {
-
-            method:"DELETE",
-
-            headers:headers()
-
-        }
-
-    );
-
-    cargarDatos();
 }
 
 function mostrarTabla(datos){
 
+    const tabla =
+    document.getElementById("tablaEquipos");
+
     tabla.innerHTML = "";
 
-    datos.forEach(r=>{
+    datos.forEach(item=>{
 
-        let color = "high";
+        let color="high";
 
-        if(r.progreso < 40){
-
-            color = "low";
-
-        }else if(r.progreso < 80){
-
-            color = "mid";
+        if(item.progreso < 40){
+            color="low";
+        }
+        else if(item.progreso < 80){
+            color="mid";
         }
 
         tabla.innerHTML += `
 
         <tr>
 
-        <td>${r.cliente}</td>
-        <td>${r.equipo}</td>
-        <td>${r.serial}</td>
-        <td>${r.status}</td>
-        <td>${r.fecha_estimada || ""}</td>
+            <td>${item.cliente || ''}</td>
 
-        <td>
+            <td>${item.equipo || ''}</td>
 
-            <div class="progress">
+            <td>${item.estado || ''}</td>
 
-                <div
-                class="progress-bar ${color}"
-                style="width:${r.progreso}%">
+            <td>${item.fecha_estimada || ''}</td>
 
-                ${r.progreso}%
+            <td>
+
+                <div class="progress-container">
+
+                    <div
+                    class="progress-bar ${color}"
+                    style="width:${item.progreso}%">
+
+                    ${item.progreso}%
+
+                    </div>
 
                 </div>
 
-            </div>
+            </td>
 
-        </td>
-
-        <td>${r.observaciones || ""}</td>
-
-        <td>
-
-            <button
-            class="btn-edit"
-            onclick="editar(${r.id})">
-
-            Editar
-
-            </button>
-
-            <button
-            class="btn-delete"
-            onclick="eliminar(${r.id})">
-
-            Eliminar
-
-            </button>
-
-        </td>
+            <td>${item.observaciones || ''}</td>
 
         </tr>
 
         `;
     });
+
 }
 
 function actualizarKPIs(datos){
@@ -518,70 +318,173 @@ function actualizarKPIs(datos){
 
     const terminados =
     datos.filter(
-        x=>x.status==="Entregado"
+      x=>x.estado==="Entregado"
     ).length;
 
     const proceso =
     total - terminados;
 
     const retrasados =
-    datos.filter(x=>
+    datos.filter(x=>{
 
-        x.fecha_estimada &&
-        x.status!=="Entregado" &&
-        new Date(x.fecha_estimada) <
-        new Date()
+        if(!x.fecha_estimada)
+            return false;
 
-    ).length;
+        return (
 
-    kpiTotal.innerText =
+            new Date(x.fecha_estimada)
+            <
+            new Date()
+
+            &&
+
+            x.estado!=="Entregado"
+
+        );
+
+    }).length;
+
+    const promedio =
+    total > 0
+
+    ?
+
+    Math.round(
+
+    datos.reduce(
+      (a,b)=>a+(b.progreso||0),0
+    ) / total
+
+    )
+
+    :
+
+    0;
+
+    totalEquipos.innerText =
     total;
 
-    kpiProceso.innerText =
+    enProceso.innerText =
     proceso;
 
-    kpiTerminados.innerText =
+    terminados.innerText =
     terminados;
 
-    kpiRetrasados.innerText =
+    retrasados.innerText =
     retrasados;
+
+    promedio.innerText =
+    promedio + "%";
+
 }
 
-function limpiarFormulario(){
+function crearGraficoEstados(datos){
 
-    cliente.value="";
-    equipo.value="";
-    serial.value="";
-    fecha.value="";
-    progreso.value="";
-    observaciones.value="";
+    const estados = {};
 
-    status.selectedIndex=0;
-}
+    datos.forEach(x=>{
 
-function filtrarTabla(){
+        estados[x.estado] =
 
-    const texto =
-    buscar.value.toLowerCase();
+        (estados[x.estado] || 0)
 
-    const filas =
-    document.querySelectorAll(
-        "#tabla tr"
-    );
-
-    filas.forEach(fila=>{
-
-        fila.style.display =
-
-        fila.innerText
-        .toLowerCase()
-        .includes(texto)
-
-        ? ""
-
-        : "none";
+        + 1;
 
     });
+
+    if(chartEstados){
+
+        chartEstados.destroy();
+
+    }
+
+    chartEstados =
+
+    new Chart(
+
+        document.getElementById(
+        "graficoEstados"
+        ),
+
+        {
+
+            type:"doughnut",
+
+            data:{
+
+                labels:
+                Object.keys(estados),
+
+                datasets:[{
+
+                    data:
+                    Object.values(estados)
+
+                }]
+
+            }
+
+        }
+
+    );
+
+}
+
+function crearGraficoClientes(datos){
+
+    const clientes = {};
+
+    datos.forEach(x=>{
+
+        clientes[x.cliente] =
+
+        (clientes[x.cliente] || 0)
+
+        + 1;
+
+    });
+
+    if(chartClientes){
+
+        chartClientes.destroy();
+
+    }
+
+    chartClientes =
+
+    new Chart(
+
+        document.getElementById(
+        "graficoClientes"
+        ),
+
+        {
+
+            type:"bar",
+
+            data:{
+
+                labels:
+                Object.keys(clientes),
+
+                datasets:[{
+
+                    label:
+                    "Equipos",
+
+                    data:
+                    Object.values(clientes),
+
+                    backgroundColor:
+                    "#004B87"
+                }]
+
+            }
+
+        }
+
+    );
+
 }
 
 cargarDatos();
@@ -589,4 +492,5 @@ cargarDatos();
 </script>
 
 </body>
+
 </html>
