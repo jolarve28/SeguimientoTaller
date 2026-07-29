@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Workshop Tracking Dashboard</title>
+<title>Seguimiento Taller</title>
 
-"></script>
+
 
 <style>
 
 body{
-    font-family:Segoe UI;
+    font-family:Segoe UI,Arial,sans-serif;
     background:#f4f6f9;
     margin:0;
 }
@@ -21,25 +19,37 @@ body{
 .header{
     background:#004B87;
     color:white;
-    padding:20px;
+    padding:15px;
 }
 
 .container{
     padding:20px;
 }
 
+.card{
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
 .kpis{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
     gap:15px;
 }
 
 .kpi{
     background:white;
-    padding:20px;
     border-radius:10px;
-    box-shadow:0 2px 5px rgba(0,0,0,.1);
+    padding:15px;
     text-align:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+.kpi h3{
+    margin:0;
 }
 
 .kpi span{
@@ -48,12 +58,38 @@ body{
     color:#004B87;
 }
 
-.card{
-    background:white;
-    border-radius:10px;
-    padding:20px;
-    margin-top:20px;
-    box-shadow:0 2px 5px rgba(0,0,0,.1);
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:10px;
+}
+
+input,select,textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:5px;
+    box-sizing:border-box;
+}
+
+button{
+    border:none;
+    padding:10px 15px;
+    border-radius:5px;
+    cursor:pointer;
+    color:white;
+}
+
+.btn-save{
+    background:#28a745;
+}
+
+.btn-edit{
+    background:#007bff;
+}
+
+.btn-delete{
+    background:#dc3545;
 }
 
 table{
@@ -68,11 +104,10 @@ th{
 
 th,td{
     border:1px solid #ddd;
-    padding:10px;
+    padding:8px;
 }
 
-.progress-container{
-    width:100%;
+.progress{
     background:#ddd;
     border-radius:20px;
     overflow:hidden;
@@ -80,11 +115,11 @@ th,td{
 
 .progress-bar{
     height:24px;
-    line-height:24px;
-    text-align:center;
     color:white;
     font-size:12px;
     font-weight:bold;
+    text-align:center;
+    line-height:24px;
 }
 
 .low{
@@ -99,24 +134,23 @@ th,td{
     background:#28a745;
 }
 
-.chart-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:20px;
+.badge{
+    color:white;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:12px;
+}
+
+canvas{
+    max-height:350px;
 }
 
 </style>
-
 </head>
-
 <body>
 
 <div class="header">
-
-<h1>
-Atlas Copco Workshop Dashboard
-</h1>
-
+<h1>Atlas Copco Taller</h1>
 </div>
 
 <div class="container">
@@ -124,40 +158,92 @@ Atlas Copco Workshop Dashboard
 <div class="kpis">
 
 <div class="kpi">
-Total Equipos
-<br>
-<span id="totalEquipos">0</span>
+<h3>Total Equipos</h3>
+<span id="kpiTotal">0</span>
 </div>
 
 <div class="kpi">
-En Proceso
-<br>
-<span id="enProceso">0</span>
+<h3>En Proceso</h3>
+<span id="kpiProceso">0</span>
 </div>
 
 <div class="kpi">
-Terminados
-<br>
-<span id="terminados">0</span>
+<h3>Terminados</h3>
+<span id="kpiTerminados">0</span>
 </div>
 
 <div class="kpi">
-Retrasados
-<br>
-<span id="retrasados">0</span>
-</div>
-
-<div class="kpi">
-Avance Promedio
-<br>
-<span id="promedio">0%</span>
+<h3>Retrasados</h3>
+<span id="kpiRetrasados">0</span>
 </div>
 
 </div>
 
 <div class="card">
 
-<h2>Equipos Registrados</h2>
+<h2 id="tituloFormulario">Nuevo Registro</h2>
+
+<div class="grid">
+
+<input id="cliente" placeholder="Cliente">
+
+<input id="equipo" placeholder="Equipo">
+
+<input id="serial" placeholder="Serial">
+
+<select id="estado">
+
+<option>Recepcionado</option>
+<option>Diagnóstico</option>
+<option>Esperando Repuestos</option>
+<option>En Reparación</option>
+<option>Pruebas</option>
+<option>Listo para Entrega</option>
+<option>Entregado</option>
+
+</select>
+
+<input type="date" id="fecha">
+
+<input
+type="number"
+id="progreso"
+placeholder="Progreso %"
+min="0"
+max="100">
+
+</div>
+
+<br>
+
+<textarea
+id="observaciones"
+rows="3"
+placeholder="Observaciones"></textarea>
+
+<br><br>
+
+<button
+id="btnGuardar"
+class="btn-save"
+onclick="guardarEquipo()">
+
+Guardar Registro
+
+</button>
+
+</div>
+
+<div class="card">
+
+<input
+id="buscar"
+placeholder="Buscar..."
+onkeyup="filtrar()">
+
+</div>
+
+<div class="card">
 
 <table>
 
@@ -167,44 +253,28 @@ Avance Promedio
 
 <th>Cliente</th>
 <th>Equipo</th>
-<th>Estado</th>
-<th>Fecha Estimada</th>
+<th>Serial</th>
+<th>estado</th>
+<th>Fecha</th>
 <th>Progreso</th>
 <th>Observaciones</th>
+<th>Acciones</th>
 
 </tr>
 
 </thead>
 
-<tbody id="tablaEquipos">
-
-</tbody>
+<tbody id="tabla"></tbody>
 
 </table>
 
 </div>
 
-<div class="chart-grid">
-
 <div class="card">
 
-<h2>
-Equipos por Estado
-</h2>
+<h3>Equipos por Estado</h3>
 
-<canvas id="graficoEstados"></canvas>
-
-</div>
-
-<div class="card">
-
-<h2>
-Equipos por Cliente
-</h2>
-
-<canvas id="graficoClientes"></canvas>
-
-</div>
+<canvas id="grafico"></canvas>
 
 </div>
 
@@ -212,32 +282,39 @@ Equipos por Cliente
 
 <script>
 
-const SUPABASE_URL =
+const URL =
 "https://tztuhdxkrdkhawknpmci.supabase.co";
 
-const SUPABASE_KEY =
+const APIKEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
 
-let chartEstados;
-let chartClientes;
+let grafico = null;
 
-async function cargarDatos(){
+let registroEditando = null;
+
+function getHeaders(){
+
+    return {
+
+        apikey: APIKEY,
+
+        Authorization:
+        `Bearer ${APIKEY}`
+
+    };
+
+}
+
+async function cargarEquipos(){
 
     const response =
     await fetch(
 
-        `${SUPABASE_URL}/rest/v1/equipos?select=*`,
+        URL + "/rest/v1/equipos?select=*",
 
         {
 
-            headers:{
-
-                apikey:SUPABASE_KEY,
-
-                Authorization:
-                `Bearer ${SUPABASE_KEY}`
-
-            }
+            headers:getHeaders()
 
         }
 
@@ -250,161 +327,292 @@ async function cargarDatos(){
 
     actualizarKPIs(datos);
 
-    crearGraficoEstados(datos);
+    actualizarGrafico(datos);
 
-    crearGraficoClientes(datos);
+}
+
+async function guardarEquipo(){
+
+    const registro = {
+
+        cliente: cliente.value,
+        equipo: equipo.value,
+        serial: serial.value,
+        estado: estado.value,
+        fecha_estimada: fecha.value,
+        progreso: Number(progreso.value),
+        observaciones: observaciones.value
+
+    };
+
+    if(registroEditando){
+
+        await fetch(
+
+            URL +
+            "/rest/v1/equipos?id=eq." +
+            registroEditando,
+
+            {
+
+                method:"PATCH",
+
+                headers:{
+                    ...getHeaders(),
+                    "Content-Type":
+                    "application/json"
+                },
+
+                body:
+                JSON.stringify(registro)
+
+            }
+
+        );
+
+        registroEditando = null;
+
+        btnGuardar.innerText =
+        "Guardar Registro";
+
+        tituloFormulario.innerText =
+        "Nuevo Registro";
+
+    }
+
+    else{
+
+        await fetch(
+
+            URL + "/rest/v1/equipos",
+
+            {
+
+                method:"POST",
+
+                headers:{
+                    ...getHeaders(),
+                    "Content-Type":
+                    "application/json"
+                },
+
+                body:
+                JSON.stringify(registro)
+
+            }
+
+        );
+
+    }
+
+    limpiarFormulario();
+
+    cargarEquipos();
+
+}
+
+async function editar(id){
+
+    const response =
+    await fetch(
+
+        URL +
+        "/rest/v1/equipos?id=eq." +
+        id,
+
+        {
+
+            headers:getHeaders()
+
+        }
+
+    );
+
+    const datos =
+    await response.json();
+
+    const r = datos[0];
+
+    registroEditando = id;
+
+    cliente.value = r.cliente;
+    equipo.value = r.equipo;
+    serial.value = r.serial;
+    estado.value = r.estado;
+    fecha.value = r.fecha_estimada;
+    progreso.value = r.progreso;
+    observaciones.value = r.observaciones;
+
+    btnGuardar.innerText =
+    "Actualizar";
+
+    tituloFormulario.innerText =
+    "Editar Registro";
+
+}
+
+async function eliminar(id){
+
+    if(!confirm("Eliminar registro?"))
+        return;
+
+    await fetch(
+
+        URL +
+        "/rest/v1/equipos?id=eq." +
+        id,
+
+        {
+
+            method:"DELETE",
+
+            headers:getHeaders()
+
+        }
+
+    );
+
+    cargarEquipos();
+
+}
+
+function limpiarFormulario(){
+
+    cliente.value="";
+    equipo.value="";
+    serial.value="";
+    fecha.value="";
+    progreso.value="";
+    observaciones.value="";
+    estado.selectedIndex=0;
 
 }
 
 function mostrarTabla(datos){
 
-    const tabla =
-    document.getElementById("tablaEquipos");
+    tabla.innerHTML="";
 
-    tabla.innerHTML = "";
-
-    datos.forEach(item=>{
+    datos.forEach(r=>{
 
         let color="high";
 
-        if(item.progreso < 40){
+        if(r.progreso<40)
             color="low";
-        }
-        else if(item.progreso < 80){
+        else if(r.progreso<80)
             color="mid";
-        }
 
         tabla.innerHTML += `
 
         <tr>
 
-            <td>${item.cliente || ''}</td>
+        <td>${r.cliente}</td>
 
-            <td>${item.equipo || ''}</td>
+        <td>${r.equipo}</td>
 
-            <td>${item.estado || ''}</td>
+        <td>${r.serial}</td>
 
-            <td>${item.fecha_estimada || ''}</td>
+        <td>${r.estado}</td>
 
-            <td>
+        <td>${r.fecha_estimada}</td>
 
-                <div class="progress-container">
+        <td>
 
-                    <div
-                    class="progress-bar ${color}"
-                    style="width:${item.progreso}%">
+        <div class="progress">
 
-                    ${item.progreso}%
+            <div
+            class="progress-bar ${color}"
+            style="width:${r.progreso}%">
 
-                    </div>
+            ${r.progreso}%
 
-                </div>
+            </div>
 
-            </td>
+        </div>
 
-            <td>${item.observaciones || ''}</td>
+        </td>
+
+        <td>${r.observaciones}</td>
+
+        <td>
+
+        <button
+        class="btn-edit"
+        onclick="editar(${r.id})">
+
+        Editar
+
+        </button>
+
+        <button
+        class="btn-delete"
+        onclick="eliminar(${r.id})">
+
+        Eliminar
+
+        </button>
+
+        </td>
 
         </tr>
 
         `;
+
     });
 
 }
 
 function actualizarKPIs(datos){
 
-    const total =
+    kpiTotal.innerText =
     datos.length;
 
-    const terminados =
+    kpiTerminados.innerText =
     datos.filter(
-      x=>x.estado==="Entregado"
+        x=>x.estado==="Entregado"
     ).length;
 
-    const proceso =
-    total - terminados;
+    kpiProceso.innerText =
+    datos.filter(
+        x=>x.estado!=="Entregado"
+    ).length;
 
-    const retrasados =
-    datos.filter(x=>{
+    let hoy = new Date();
 
-        if(!x.fecha_estimada)
-            return false;
+    kpiRetrasados.innerText =
+    datos.filter(x=>
 
-        return (
+        x.estado!=="Entregado"
 
-            new Date(x.fecha_estimada)
-            <
-            new Date()
+        &&
 
-            &&
+        x.fecha_estimada
 
-            x.estado!=="Entregado"
+        &&
 
-        );
+        new Date(x.fecha_estimada)<hoy
 
-    }).length;
-
-    const promedio =
-    total > 0
-
-    ?
-
-    Math.round(
-
-    datos.reduce(
-      (a,b)=>a+(b.progreso||0),0
-    ) / total
-
-    )
-
-    :
-
-    0;
-
-    totalEquipos.innerText =
-    total;
-
-    enProceso.innerText =
-    proceso;
-
-    terminados.innerText =
-    terminados;
-
-    retrasados.innerText =
-    retrasados;
-
-    promedio.innerText =
-    promedio + "%";
+    ).length;
 
 }
 
-function crearGraficoEstados(datos){
+function actualizarGrafico(datos){
 
-    const estados = {};
+    let estados = {};
 
     datos.forEach(x=>{
 
         estados[x.estado] =
-
-        (estados[x.estado] || 0)
-
-        + 1;
+        (estados[x.estado]||0)+1;
 
     });
 
-    if(chartEstados){
+    if(grafico)
+        grafico.destroy();
 
-        chartEstados.destroy();
-
-    }
-
-    chartEstados =
-
+    grafico =
     new Chart(
 
-        document.getElementById(
-        "graficoEstados"
-        ),
+        document.getElementById("grafico"),
 
         {
 
@@ -430,67 +638,32 @@ function crearGraficoEstados(datos){
 
 }
 
-function crearGraficoClientes(datos){
+function filtrar(){
 
-    const clientes = {};
+    const texto =
+    buscar.value.toLowerCase();
 
-    datos.forEach(x=>{
+    document
+    .querySelectorAll("#tabla tr")
+    .forEach(fila=>{
 
-        clientes[x.cliente] =
+        fila.style.display =
 
-        (clientes[x.cliente] || 0)
+        fila.innerText
+        .toLowerCase()
+        .includes(texto)
 
-        + 1;
+        ? ""
+
+        : "none";
 
     });
 
-    if(chartClientes){
-
-        chartClientes.destroy();
-
-    }
-
-    chartClientes =
-
-    new Chart(
-
-        document.getElementById(
-        "graficoClientes"
-        ),
-
-        {
-
-            type:"bar",
-
-            data:{
-
-                labels:
-                Object.keys(clientes),
-
-                datasets:[{
-
-                    label:
-                    "Equipos",
-
-                    data:
-                    Object.values(clientes),
-
-                    backgroundColor:
-                    "#004B87"
-                }]
-
-            }
-
-        }
-
-    );
-
 }
 
-cargarDatos();
+cargarEquipos();
 
 </script>
 
 </body>
-
 </html>
