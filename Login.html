@@ -36,6 +36,12 @@ button{
     background:#004B87;
     color:white;
     border:none;
+    cursor:pointer;
+}
+
+.errores{
+    color:red;
+    margin-top:10px;
 }
 </style>
 
@@ -45,16 +51,18 @@ button{
 
 <div class="card">
 
-<h2>Ingreso al Sistema</h2>
+    <h2>Ingreso al Sistema</h2>
 
-<input
-    type="email"
-    id="email"
-    placeholder="correo@atlascopco.com">
+    <input
+        type="email"
+        id="email"
+        placeholder="correo@atlascopco.com">
 
-<button onclick="ingresar()">
-Ingresar
-</button>
+    <button onclick="ingresar()">
+        Ingresar
+    </button>
+
+    <div id="mensaje" class="errores"></div>
 
 </div>
 
@@ -74,8 +82,18 @@ async function ingresar(){
         .trim()
         .toLowerCase();
 
-    const response =
-        await fetch(
+    // Validar correo corporativo
+    if(!email.endsWith("@atlascopco.com")){
+
+        document.getElementById("mensaje").innerHTML =
+        "Solo se permiten cuentas corporativas Atlas Copco";
+
+        return;
+    }
+
+    try{
+
+        const response = await fetch(
             `${URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}&select=perfil`,
             {
                 headers:{
@@ -85,33 +103,27 @@ async function ingresar(){
             }
         );
 
-    const datos = await response.json();
+        const datos = await response.json();
 
-    if(
-        datos.length > 0 &&
-        datos[0].perfil === "ADMIN"
-    ){
-        window.location.href = "index.html";
-    }else{
-        window.location.href = "Consulta.html";
-    }
+        if(
+            datos.length > 0 &&
+            datos[0].perfil === "ADMIN"
+        ){
 
-}
+            window.location.href = "index.html";
 
+        }else{
 
-    const datos =
-    await response.json();
+            window.location.href = "Consulta.html";
 
-    if(datos.length > 0 &&
-       datos[0].perfil === "ADMIN"){
+        }
 
-        window.location.href =
-        "index.html";
+    }catch(error){
 
-    }else{
+        document.getElementById("mensaje").innerHTML =
+        "Error al validar usuario";
 
-        window.location.href =
-        "Consulta.html";
+        console.error(error);
 
     }
 
