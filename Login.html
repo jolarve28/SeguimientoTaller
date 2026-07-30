@@ -92,67 +92,24 @@ const APIKEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
 
 
-async function ingresar() {
+async function probar() {
 
-    const email = document
-        .getElementById("email")
-        .value
-        .trim()
-        .toLowerCase();
-
-    try {
-
-        const response = await fetch(
-            `${URL}/rest/v1/usuarios?select=email,perfil`,
-            {
-                headers: {
-                    apikey: APIKEY,
-                    Authorization: `Bearer ${APIKEY}`
-                }
+    const response = await fetch(
+        "https://tztuhdxkrdkhawknpmci.supabase.co/rest/v1/usuarios?select=*",
+        {
+            headers: {
+                apikey: APIKEY,
+                Authorization: `Bearer ${APIKEY}`
             }
-        );
-
-        const usuarios = await response.json();
-
-        const usuario = usuarios.find(
-            x => x.email.toLowerCase() === email
-        );
-
-        if (!usuario) {
-
-            document.getElementById("mensaje").innerHTML =
-                "Usuario no encontrado";
-
-            return;
         }
+    );
 
-        if (usuario.perfil === "ADMIN") {
+    console.log("Status:", response.status);
 
-            window.location.href = "index.html";
+    const texto = await response.text();
 
-        } else {
-
-            window.location.href = "Consulta.html";
-        }
-
-    } catch (error) {
-
-        console.error(error);
-
-        document.getElementById("mensaje").innerHTML =
-            error.message;
-    }
+    console.log(texto);
 }
-
-        );
-
-        if(!response.ok){
-
-            throw new Error(
-                `Error ${response.status}`
-            );
-        }
-
         const usuarios =
             await response.json();
 
