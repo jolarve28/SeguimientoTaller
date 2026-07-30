@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ingreso</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#f4f6f9;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.card{
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    width:350px;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    box-sizing:border-box;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    margin-top:15px;
+    background:#004B87;
+    color:white;
+    border:none;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Ingreso al Sistema</h2>
+
+<input
+    type="email"
+    id="email"
+    placeholder="correo@atlascopco.com">
+
+<button onclick="ingresar()">
+Ingresar
+</button>
+
+</div>
+
+<script>
+
+const URL =
+"https://TU_PROYECTO.supabase.co";
+
+const APIKEY =
+"TU_APIKEY";
+
+async function ingresar(){
+
+    const email =
+    document.getElementById("email")
+    .value
+    .trim()
+    .toLowerCase();
+
+    const response =
+    await fetch(
+        URL +
+        "/rest/v1/usuarios?email=eq." +
+        encodeURIComponent(email),
+        {
+            headers:{
+                apikey:APIKEY,
+                Authorization:`Bearer ${APIKEY}`
+            }
+        }
+    );
+
+    const datos =
+    await response.json();
+
+    if(datos.length > 0 &&
+       datos[0].perfil === "ADMIN"){
+
+        window.location.href =
+        "index.html";
+
+    }else{
+
+        window.location.href =
+        "Consulta.html";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
