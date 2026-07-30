@@ -66,27 +66,38 @@ const URL =
 const APIKEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
 
-
 async function ingresar(){
 
     const email =
-    document.getElementById("email")
-    .value
-    .trim()
-    .toLowerCase();
+        document.getElementById("email")
+        .value
+        .trim()
+        .toLowerCase();
 
     const response =
-    await fetch(
-        URL +
-        "/rest/v1/usuarios?email=eq." +
-        encodeURIComponent(email),
-        {
-            headers:{
-                apikey:APIKEY,
-                Authorization:`Bearer ${APIKEY}`
+        await fetch(
+            `${URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}&select=perfil`,
+            {
+                headers:{
+                    apikey: APIKEY,
+                    Authorization: `Bearer ${APIKEY}`
+                }
             }
-        }
-    );
+        );
+
+    const datos = await response.json();
+
+    if(
+        datos.length > 0 &&
+        datos[0].perfil === "ADMIN"
+    ){
+        window.location.href = "index.html";
+    }else{
+        window.location.href = "Consulta.html";
+    }
+
+}
+
 
     const datos =
     await response.json();
