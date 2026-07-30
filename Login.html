@@ -26,17 +26,17 @@ body{
 }
 
 h2{
-    margin-top:0;
+    text-align:center;
     color:#004B87;
 }
 
 input{
     width:100%;
     padding:12px;
+    box-sizing:border-box;
     margin-top:10px;
     border:1px solid #ccc;
     border-radius:5px;
-    box-sizing:border-box;
 }
 
 button{
@@ -48,21 +48,16 @@ button{
     border:none;
     border-radius:5px;
     cursor:pointer;
-    font-size:16px;
 }
 
 button:hover{
-    background:#00345f;
+    background:#003a68;
 }
 
-.errores{
+#mensaje{
+    margin-top:15px;
     color:red;
-    margin-top:15px;
-}
-
-.exito{
-    color:green;
-    margin-top:15px;
+    text-align:center;
 }
 
 </style>
@@ -90,90 +85,99 @@ button:hover{
 
 <script>
 
-const URL = "https://tztuhdxkrdkhawknpmci.supabase.co";
+const URL =
+"https://tztuhdxkrdkhawknpmci.supabase.co";
 
-const APIKEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
+const APIKEY =
+"TU_API_KEY_DE_SUPABASE";
 
-async function ingresar() {
+async function ingresar(){
 
     const mensaje =
         document.getElementById("mensaje");
 
-    mensaje.className = "";
     mensaje.innerHTML = "";
 
-    try {
+    const email =
+        document.getElementById("email")
+        .value
+        .trim()
+        .toLowerCase();
 
-        const email =
-            document
-            .getElementById("email")
-            .value
-            .trim()
-            .toLowerCase();
+    if(!email){
 
-        if (!email) {
+        mensaje.innerHTML =
+        "Ingrese un correo válido";
 
-            mensaje.className = "errores";
-            mensaje.innerHTML =
-                "Ingrese un correo electrónico.";
+        return;
+    }
 
-            return;
-        }
+    try{
 
         const response = await fetch(
+
             `${URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}&select=*`,
+
             {
-                method: "GET",
-                headers: {
-                    apikey: APIKEY,
-                    Authorization: `Bearer ${APIKEY}`,
-                    "Content-Type": "application/json"
+                method:"GET",
+                headers:{
+                    apikey:APIKEY,
+                    Authorization:`Bearer ${APIKEY}`,
+                    "Content-Type":"application/json"
                 }
             }
+
         );
 
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}`);
+        if(!response.ok){
+
+            throw new Error(
+                `Error ${response.status}`
+            );
         }
 
-        const datos = await response.json();
+        const usuarios =
+            await response.json();
 
-        console.log("Usuario encontrado:", datos);
+        if(usuarios.length === 0){
 
-        if (datos.length === 0) {
-
-            mensaje.className = "errores";
             mensaje.innerHTML =
-                "Usuario no autorizado.";
+            "Usuario no encontrado";
 
             return;
         }
 
-        const perfil = datos[0].perfil;
+        const usuario =
+            usuarios[0];
 
         localStorage.setItem(
             "email",
-            email
+            usuario.email
         );
 
         localStorage.setItem(
             "perfil",
-            perfil
+            usuario.perfil
         );
 
-        mensaje.className = "exito";
-        mensaje.innerHTML =
-            "Acceso correcto...";
-
-        if (perfil === "ADMIN") {
+        if(usuario.perfil === "ADMIN"){
 
             window.location.href =
-                "index.html";
+            "index.html";
 
-        } else {
+        }
+        else if(
+            usuario.perfil === "CONSULTA"
+        ){
 
             window.location.href =
-                "Consulta.html";
+            "Consulta.html";
+
+        }
+        else{
+
+            mensaje.innerHTML =
+            "Perfil no válido";
         }
 
     }
@@ -181,21 +185,25 @@ async function ingresar() {
 
         console.error(error);
 
-        mensaje.className = "errores";
         mensaje.innerHTML =
-            "Error: " + error.message;
+        "Error al conectar con la base de datos";
     }
+
 }
 
 document
 .getElementById("email")
-.addEventListener("keypress", function(e){
+.addEventListener(
+    "keypress",
+    function(e){
 
-    if(e.key === "Enter"){
-        ingresar();
+        if(e.key === "Enter"){
+
+            ingresar();
+        }
+
     }
-
-});
+);
 
 </script>
 
