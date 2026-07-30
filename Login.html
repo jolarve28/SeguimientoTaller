@@ -3,27 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Ingreso al Sistema</title>
 
 <style>
-
 body{
-    font-family: Arial, sans-serif;
+    font-family:Arial,sans-serif;
     background:#f4f6f9;
-    margin:0;
-    height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
+    height:100vh;
+    margin:0;
 }
 
 .card{
-    background:white;
-    width:400px;
+    background:#fff;
     padding:30px;
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,.15);
+    border-radius:10px;
+    width:380px;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
 }
 
 h2{
@@ -34,35 +32,31 @@ h2{
 input{
     width:100%;
     padding:12px;
-    border:1px solid #ccc;
-    border-radius:6px;
+    margin-top:10px;
     box-sizing:border-box;
-    margin-top:15px;
 }
 
 button{
     width:100%;
     padding:12px;
     margin-top:15px;
-    border:none;
-    border-radius:6px;
     background:#004B87;
     color:white;
+    border:none;
     cursor:pointer;
-    font-size:16px;
 }
 
 button:hover{
-    background:#003b6a;
+    background:#003863;
 }
 
 #mensaje{
     margin-top:15px;
-    text-align:center;
     color:red;
+    text-align:center;
 }
-
 </style>
+
 </head>
 
 <body>
@@ -76,7 +70,7 @@ button:hover{
         id="email"
         placeholder="correo@atlascopco.com">
 
-    <button onclick="ingresar()">
+    <button id="btnIngresar">
         Ingresar
     </button>
 
@@ -92,7 +86,7 @@ const URL =
 const APIKEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
 
-async function ingresar(){
+async function ingresar() {
 
     const mensaje =
         document.getElementById("mensaje");
@@ -105,44 +99,46 @@ async function ingresar(){
         .trim()
         .toLowerCase();
 
-    if(!email){
+    if (!email) {
 
         mensaje.innerHTML =
-            "Ingrese un correo válido";
+            "Ingrese un correo electrónico";
 
         return;
     }
 
-    try{
+    try {
 
         const response = await fetch(
-            `${URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}&select=email,perfil`,
+            `${URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}&select=*`,
             {
-                method:"GET",
-                headers:{
-                    "apikey": APIKEY,
-                    "Authorization": `Bearer ${APIKEY}`,
-                    "Content-Type":"application/json"
+                method: "GET",
+                headers: {
+                    apikey: APIKEY,
+                    Authorization: `Bearer ${APIKEY}`,
+                    "Content-Type": "application/json"
                 }
             }
         );
 
-        const texto = await response.text();
+        if (!response.ok) {
 
-        console.log("STATUS:", response.status);
-        console.log("RESPUESTA:", texto);
+            const errorText =
+                await response.text();
 
-        if(!response.ok){
+            console.log(errorText);
 
             throw new Error(
                 `Error ${response.status}`
             );
         }
 
-        const usuarios =
-            JSON.parse(texto);
+        const datos =
+            await response.json();
 
-        if(usuarios.length === 0){
+        console.log(datos);
+
+        if (datos.length === 0) {
 
             mensaje.innerHTML =
                 "Usuario no autorizado";
@@ -150,8 +146,7 @@ async function ingresar(){
             return;
         }
 
-        const usuario =
-            usuarios[0];
+        const usuario = datos[0];
 
         localStorage.setItem(
             "email",
@@ -163,48 +158,41 @@ async function ingresar(){
             usuario.perfil
         );
 
-        if(usuario.perfil === "ADMIN"){
+        if (usuario.perfil === "ADMIN") {
 
             window.location.href =
                 "index.html";
 
-        }
-        else if(
-            usuario.perfil === "CONSULTA"
-        ){
+        } else {
 
             window.location.href =
                 "Consulta.html";
 
         }
-        else{
 
-            mensaje.innerHTML =
-                "Perfil no válido";
-        }
-
-    }
-    catch(error){
+    } catch (error) {
 
         console.error(error);
 
         mensaje.innerHTML =
-            "Error: " + error.message;
+            error.message;
     }
 }
 
 document
+.getElementById("btnIngresar")
+.addEventListener("click", ingresar);
+
+document
 .getElementById("email")
-.addEventListener(
-    "keypress",
-    function(e){
+.addEventListener("keydown", function(e){
 
-        if(e.key === "Enter"){
-            ingresar();
-        }
+    if(e.key === "Enter"){
 
+        ingresar();
     }
-);
+
+});
 
 </script>
 
