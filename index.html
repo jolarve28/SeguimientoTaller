@@ -705,6 +705,8 @@ function filtrar(){
 
 cargarEquipos();
 
+</script>
+
 <button onclick="cerrarSesion()">
 Cerrar sesión
 </button>
@@ -715,14 +717,9 @@ function cerrarSesion(){
     localStorage.removeItem("perfil");
     localStorage.removeItem("email");
 
-    window.location.href =
-    "Login.html";
-
+    window.location.href = "Login.html";
 }
 </script>
-
-    
-
 
 </body>
 </html>
