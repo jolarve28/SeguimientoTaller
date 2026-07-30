@@ -79,23 +79,27 @@ async function ingresar() {
 
     try {
 
-        const email =
-            document.getElementById("email")
+        const email = document
+            .getElementById("email")
             .value
             .trim()
             .toLowerCase();
 
         const response = await fetch(
-            `${URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}&select=perfil`,
+            `${URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}&select=*`,
             {
+                method: "GET",
                 headers: {
-                    apikey: APIKEY,
-                    Authorization: `Bearer ${APIKEY}`
+                    "apikey": APIKEY,
+                    "Authorization": `Bearer ${APIKEY}`,
+                    "Content-Type": "application/json"
                 }
             }
         );
 
-     
+        const datos = await response.json();
+
+        console.log(datos);
 
         if (
             datos.length > 0 &&
@@ -110,10 +114,12 @@ async function ingresar() {
 
         }
 
-    } catch(error) {
+    } catch (error) {
 
         console.error(error);
-        alert("Error consultando usuarios");
+
+        document.getElementById("mensaje").innerHTML =
+            error.message;
 
     }
 
