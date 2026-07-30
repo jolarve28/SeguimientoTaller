@@ -92,41 +92,57 @@ const APIKEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
 
 
-async function ingresar(){
+async function ingresar() {
 
-    const mensaje =
-        document.getElementById("mensaje");
-
-    mensaje.innerHTML = "";
-
-    const email =
-        document.getElementById("email")
+    const email = document
+        .getElementById("email")
         .value
         .trim()
         .toLowerCase();
 
-    if(!email){
-
-        mensaje.innerHTML =
-        "Ingrese un correo válido";
-
-        return;
-    }
-
-    try{
+    try {
 
         const response = await fetch(
-
-            `${URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}&select=*`,
-
+            `${URL}/rest/v1/usuarios?select=email,perfil`,
             {
-                method:"GET",
-                headers:{
-                    apikey:APIKEY,
-                    Authorization:`Bearer ${APIKEY}`,
-                    "Content-Type":"application/json"
+                headers: {
+                    apikey: APIKEY,
+                    Authorization: `Bearer ${APIKEY}`
                 }
             }
+        );
+
+        const usuarios = await response.json();
+
+        const usuario = usuarios.find(
+            x => x.email.toLowerCase() === email
+        );
+
+        if (!usuario) {
+
+            document.getElementById("mensaje").innerHTML =
+                "Usuario no encontrado";
+
+            return;
+        }
+
+        if (usuario.perfil === "ADMIN") {
+
+            window.location.href = "index.html";
+
+        } else {
+
+            window.location.href = "Consulta.html";
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("mensaje").innerHTML =
+            error.message;
+    }
+}
 
         );
 
