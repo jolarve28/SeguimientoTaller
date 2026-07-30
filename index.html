@@ -308,6 +308,24 @@ onkeyup="filtrar()">
 
 <script>
 
+const autenticado =
+    localStorage.getItem("autenticado");
+
+const perfil =
+    localStorage.getItem("perfil");
+
+if (
+    autenticado !== "SI" ||
+    perfil !== "ADMIN"
+) {
+    window.location.href = "Login.html";
+}
+
+
+
+
+
+    
 const URL =
 "https://tztuhdxkrdkhawknpmci.supabase.co";
 
