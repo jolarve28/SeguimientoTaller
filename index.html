@@ -603,47 +603,74 @@ function actualizarKPIs(datos){
 
 }
 
-function actualizarGrafico(datos){
+function actualizarGrafico(datos) {
 
-    let estados = {};
+    const estados = {};
 
-    datos.forEach(x=>{
-
-        estados[x.estado] =
-        (estados[x.estado]||0)+1;
-
+    datos.forEach(x => {
+        estados[x.estado] = (estados[x.estado] || 0) + 1;
     });
 
-    if(grafico)
+    const total = datos.length;
+
+    const labels = Object.keys(estados);
+    const valores = Object.values(estados);
+
+    const etiquetasPorcentaje = labels.map((estado, i) => {
+        const porcentaje =
+            ((valores[i] / total) * 100).toFixed(1);
+
+        return `${estado} (${porcentaje}%)`;
+    });
+
+    if (grafico) {
         grafico.destroy();
+    }
 
-    grafico =
-    new Chart(
-
+    grafico = new Chart(
         document.getElementById("grafico"),
-
         {
-
-            type:"doughnut",
-
-            data:{
-
-                labels:
-                Object.keys(estados),
-
-                datasets:[{
-
-                    data:
-                    Object.values(estados)
-
+            type: "doughnut",
+            data: {
+                labels: etiquetasPorcentaje,
+                datasets: [{
+                    data: valores,
+                    backgroundColor: [
+                        "#004B87",
+                        "#28a745",
+                        "#ff9800",
+                        "#dc3545",
+                        "#17a2b8",
+                        "#6f42c1",
+                        "#20c997"
+                    ]
                 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "right"
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
 
+                                const valor = context.raw;
+
+                                const porcentaje =
+                                    ((valor / total) * 100)
+                                    .toFixed(1);
+
+                                return `${valor} equipos (${porcentaje}%)`;
+                            }
+                        }
+                    }
+                }
             }
-
         }
-
     );
-
 }
 
 function filtrar(){
