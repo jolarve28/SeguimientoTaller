@@ -395,6 +395,13 @@ onkeyup="filtrar()">
 </div>
 
 
+<script>
+if (
+    localStorage.getItem("autenticado") !== "SI"
+) {
+    window.location.replace("Login.html");
+}
+</script>
 
 
 
