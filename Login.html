@@ -157,7 +157,10 @@ async function ingresar() {
             "perfil",
             usuario.perfil
         );
-
+localStorage.setItem(
+    "autenticado",
+    "SI"
+);
         if (usuario.perfil === "ADMIN") {
 
             window.location.href =
