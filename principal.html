@@ -15,11 +15,34 @@
 
 <style>
 
+
+    
 body{
     font-family:Segoe UI,Arial,sans-serif;
     background:#f4f6f9;
     margin:0;
 }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.main-container {
+    width: 95%;
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+.responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+
+    
 .grid {
     display: flex;
     flex-direction: column;
