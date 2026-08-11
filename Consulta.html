@@ -168,6 +168,15 @@ if (
     window.location.replace("Login.html");
 }
 </script>
+
+<script>
+history.pushState(null, null, location.href);
+
+window.addEventListener("popstate", function () {
+    history.pushState(null, null, location.href);
+});
+</script>
+
     
 <script>
 
