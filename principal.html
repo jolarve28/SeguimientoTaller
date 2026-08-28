@@ -139,8 +139,15 @@ button{
     background:#dc3545;
 }
 
+.table-responsive{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
 table{
-    width:50%;
+    width:100%;
+    min-width:1400px;
     border-collapse:collapse;
 }
 
@@ -360,7 +367,7 @@ onkeyup="filtrar()">
 <thead>
 
 <tr>
-<tr>
+
 <th onclick="ordenar(0)">Ingreso ↕</th>
 <th>Modelo</th>
 <th >Serial</th>
@@ -376,7 +383,7 @@ onkeyup="filtrar()">
 <th>Acciones</th>
 </tr>
 
-</tr>
+
 
 </thead>
 
@@ -455,6 +462,8 @@ let graficoLabor = null;
 let graficoIngresos = null;
 
 let registroEditando = null;
+let equipos = [];
+let direccionOrden = {};
 
 function esAdministrador() {
 const email = Session.getActiveUser().getEmail();
@@ -474,22 +483,103 @@ function getHeaders(){
 }
 
 async function cargarEquipos(){
-    const response =
-    await fetch(
+
+    const response = await fetch(
         URL + "/rest/v1/equipos?select=*",
         {
             headers:getHeaders()
         }
     );
-    const datos =
-    await response.json();
 
-    mostrarTabla(datos);
-    actualizarKPIs(datos);
-    actualizarGraficos(datos);
+    equipos = await response.json();
+
+    console.log(equipos);
+
+    mostrarTabla(equipos);
+    actualizarKPIs(equipos);
+    actualizarGraficos(equipos);
 }
 
+function ordenar(columna){
 
+    direccionOrden[columna] = !direccionOrden[columna];
+
+    equipos.sort((a,b)=>{
+
+        let valorA;
+        let valorB;
+
+        switch(columna){
+
+            case 0:
+                valorA = a.ingreso || "";
+                valorB = b.ingreso || "";
+                break;
+
+            case 3:
+                valorA = a.zona || "";
+                valorB = b.zona || "";
+                break;
+
+            case 4:
+                valorA = a.cliente || "";
+                valorB = b.cliente || "";
+                break;
+
+            case 5:
+                valorA = a.tipo_labor || "";
+                valorB = b.tipo_labor || "";
+                break;
+
+            case 6:
+                valorA = a.fecha_estimada || "";
+                valorB = b.fecha_estimada || "";
+                break;
+
+            case 7:
+                valorA = a.estado || "";
+                valorB = b.estado || "";
+                break;
+
+            case 9:
+                valorA = a.responsable || "";
+                valorB = b.responsable || "";
+                break;
+
+            case 10:
+                valorA = a.fecha_entrega || "";
+                valorB = b.fecha_entrega || "";
+                break;
+
+            default:
+                return 0;
+        }
+
+        if(direccionOrden[columna]){
+
+            return valorA
+                .toString()
+                .localeCompare(
+                    valorB.toString(),
+                    'es',
+                    {numeric:true}
+                );
+
+        }else{
+
+            return valorB
+                .toString()
+                .localeCompare(
+                    valorA.toString(),
+                    'es',
+                    {numeric:true}
+                );
+        }
+
+    });
+
+    mostrarTabla(equipos);
+}
 function actualizarIconos(columna){
 
     document
@@ -1090,3 +1180,4 @@ cargarEquipos();
 
 </body>
 </html>
+
