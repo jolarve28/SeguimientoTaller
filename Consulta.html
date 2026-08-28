@@ -12,13 +12,48 @@
     
 <title>Consulta Estado de Equipos</title>
 
+
 <style>
+
+
+    
 body{
     font-family:Segoe UI,Arial,sans-serif;
     background:#f4f6f9;
     margin:0;
 }
 
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.main-container {
+    width: 95%;
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+.responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+
+    
+.grid {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-top: 10px;
+}
 .header{
     background:#004B87;
     color:white;
@@ -37,19 +72,46 @@ body{
     box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
 
-.grid{
+.kpis{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
     gap:15px;
 }
 
-label{
-    display:block;
-    font-weight:bold;
-    margin-bottom:5px;
+.kpi{
+    background:white;
+    border-radius:10px;
+    padding:15px;
+    text-align:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
 
-input{
+.kpi h3{
+    margin:0;
+}
+
+.kpi span{
+    font-size:38px;
+    font-weight:bold;
+    color:#004B87;
+}
+
+.kpi{
+    border-left:6px solid #009FE3;
+    transition:0.3s;
+}
+
+.kpi:hover{
+    transform:translateY(-3px);
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:10px;
+}
+
+input,select,textarea{
     width:100%;
     padding:10px;
     border:1px solid #ccc;
@@ -57,10 +119,36 @@ input{
     box-sizing:border-box;
 }
 
+button{
+    border:none;
+    padding:10px 15px;
+    border-radius:5px;
+    cursor:pointer;
+    color:white;
+}
+
+.btn-save{
+    background:#28a745;
+}
+
+.btn-edit{
+    background:#007bff;
+}
+
+.btn-delete{
+    background:#dc3545;
+}
+
+.table-responsive{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
 table{
     width:100%;
+    min-width:1400px;
     border-collapse:collapse;
-    font-size:14px;
 }
 
 th{
@@ -71,14 +159,12 @@ th{
 th,td{
     border:1px solid #ddd;
     padding:8px;
-    text-align:left;
 }
 
 .progress{
     background:#ddd;
     border-radius:20px;
     overflow:hidden;
-    min-width:120px;
 }
 
 .progress-bar{
@@ -102,73 +188,141 @@ th,td{
     background:#28a745;
 }
 
-.error{
-    color:red;
-    font-weight:bold;
-    padding:20px;
+.badge{
+    color:white;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:12px;
 }
-</style>
-</head>
 
+canvas{
+    max-height:350px;
+}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 <body>
 
 <div class="header">
-    <h1>Consulta Estado de Equipos</h1>
+<h1>Atlas Copco Taller</h1>
 </div>
 
 <div class="container">
 
-    <div class="card">
-        <div class="grid">
+<div class="kpis">
 
-            <div>
-                <label>Cliente</label>
-                <input
-                    id="filtroCliente"
-                    placeholder="Buscar cliente"
-                    onkeyup="filtrar()">
-            </div>
+<div class="kpi">
+<h3>Total Equipos</h3>
+<span id="kpiTotal">0</span>
+</div>
 
-            <div>
-                <label>Serial</label>
-                <input
-                    id="filtroSerial"
-                    placeholder="Buscar serial"
-                    onkeyup="filtrar()">
-            </div>
+<div class="kpi">
+<h3>En Proceso</h3>
+<span id="kpiProceso">0</span>
+</div>
 
-        </div>
-    </div>
+<div class="kpi">
+<h3>Terminados</h3>
+<span id="kpiTerminados">0</span>
+</div>
 
-    <div class="card">
-
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Ingreso</th>
-                    <th>Modelo</th>
-                    <th>Serial</th>
-                    <th>Zona</th>
-                    <th>Cliente</th>
-                    <th>Tipo Labor</th>
-                    <th>Fecha Estimada</th>
-                    <th>Estado</th>
-                    <th>Progreso</th>
-                    <th>Responsable</th>
-                    <th>Observaciones</th>
-                </tr>
-            </thead>
-
-            <tbody id="tabla"></tbody>
-
-        </table>
-
-    </div>
+<div class="kpi">
+<h3>Retrasados</h3>
+<span id="kpiRetrasados">0</span>
+</div>
 
 </div>
 
-    <script>
+
+
+
+
+</div>
+
+<input
+id="buscar"
+placeholder="Buscar..."
+onkeyup="filtrar()">
+
+</div>
+
+
+<h3></h3>
+
+</div>
+
+
+<div class="card">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th onclick="ordenar(0)">Ingreso ↕</th>
+<th>Modelo</th>
+<th >Serial</th>
+<th onclick="ordenar(3)">Zona ↕</th>
+<th onclick="ordenar(4)">Cliente ↕</th>
+<th onclick="ordenar(5)">Tipo Labor ↕</th>
+<th onclick="ordenar(6)">Fecha Estimada ↕</th>
+<th onclick="ordenar(7)">Estado ↕</th>
+<th >Progreso</th>
+<th onclick="ordenar(9)">Responsable ↕</th>
+<th onclick="ordenar(10)">Fecha Entrega ↕</th>
+<th>Observaciones</th>
+
+</tr>
+
+
+
+</thead>
+
+<tbody id="tabla"></tbody>
+
+</table>
+
+</div>
+
+<div class="card">
+    <h3>Dashboard Gráfico</h3>
+
+    <div style="display:grid;
+                grid-template-columns:repeat(auto-fit,minmax(400px,1fr));
+                gap:20px;">
+
+        <div>
+            <h4>Equipos por Estado</h4>
+            <canvas id="graficoEstado"></canvas>
+        </div>
+
+        <div>
+            <h4>Equipos por Zona</h4>
+            <canvas id="graficoZona"></canvas>
+        </div>
+
+        <div>
+            <h4>Equipos por Tipo de Labor</h4>
+            <canvas id="graficoLabor"></canvas>
+        </div>
+
+        <div>
+            <h4>Ingresos por Mes</h4>
+            <canvas id="graficoIngresos"></canvas>
+        </div>
+<div class="kpi">
+    <h3>% Cumplimiento</h3>
+    <span id="kpiCumplimiento">0%</span>
+</div>
+
+        
+    </div>
+</div>
+
+
+<script>
 if (
     localStorage.getItem("autenticado") !== "SI"
 ) {
@@ -184,155 +338,717 @@ window.addEventListener("popstate", function () {
 });
 </script>
 
-    
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
 <script>
 
-const URL = 
+const URL =
 "https://tztuhdxkrdkhawknpmci.supabase.co";
 
-const APIKEY = 
+const APIKEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
 
-function getHeaders() {
+let graficoEstado = null;
+let graficoZona = null;
+let graficoLabor = null;
+let graficoIngresos = null;
+
+let registroEditando = null;
+let equipos = [];
+let direccionOrden = {};
+
+function esAdministrador() {
+const email = Session.getActiveUser().getEmail();
+return ADMINISTRADORES.includes(email);
+}
+function getHeaders(){
+
     return {
-        "apikey": APIKEY,
-        "Authorization": `Bearer ${APIKEY}`,
-        "Content-Type": "application/json"
+
+        apikey: APIKEY,
+
+        Authorization:
+        `Bearer ${APIKEY}`
+
     };
+
 }
 
-async function cargarEquipos() {
+async function cargarEquipos(){
+
+    const response = await fetch(
+        URL + "/rest/v1/equipos?select=*",
+        {
+            headers:getHeaders()
+        }
+    );
+
+    equipos = await response.json();
+
+    console.log(equipos);
+
+    mostrarTabla(equipos);
+    actualizarKPIs(equipos);
+    actualizarGraficos(equipos);
+}
+
+function ordenar(columna){
+
+    direccionOrden[columna] = !direccionOrden[columna];
+
+    equipos.sort((a,b)=>{
+
+        let valorA;
+        let valorB;
+
+        switch(columna){
+
+            case 0:
+                valorA = a.ingreso || "";
+                valorB = b.ingreso || "";
+                break;
+
+            case 3:
+                valorA = a.zona || "";
+                valorB = b.zona || "";
+                break;
+
+            case 4:
+                valorA = a.cliente || "";
+                valorB = b.cliente || "";
+                break;
+
+            case 5:
+                valorA = a.tipo_labor || "";
+                valorB = b.tipo_labor || "";
+                break;
+
+            case 6:
+                valorA = a.fecha_estimada || "";
+                valorB = b.fecha_estimada || "";
+                break;
+
+            case 7:
+                valorA = a.estado || "";
+                valorB = b.estado || "";
+                break;
+
+            case 9:
+                valorA = a.responsable || "";
+                valorB = b.responsable || "";
+                break;
+
+            case 10:
+                valorA = a.fecha_entrega || "";
+                valorB = b.fecha_entrega || "";
+                break;
+
+            default:
+                return 0;
+        }
+
+        if(direccionOrden[columna]){
+
+            return valorA
+                .toString()
+                .localeCompare(
+                    valorB.toString(),
+                    'es',
+                    {numeric:true}
+                );
+
+        }else{
+
+            return valorB
+                .toString()
+                .localeCompare(
+                    valorA.toString(),
+                    'es',
+                    {numeric:true}
+                );
+        }
+
+    });
+
+    mostrarTabla(equipos);
+}
+function actualizarIconos(columna){
+
+    document
+    .querySelectorAll("th.sortable")
+    .forEach(th=>{
+        th.innerHTML =
+        th.innerHTML
+        .replace(" ▲","")
+        .replace(" ▼","");
+    });
+
+    const th =
+    document.querySelectorAll("th.sortable")[columna];
+
+    th.innerHTML +=
+    direccionOrden[columna]
+        ? " ▲"
+        : " ▼";
+}
+
+const atlasColors = [
+    "#004B87", // Azul Atlas Copco principal
+    "#009FE3", // Azul claro corporativo
+    "#00C2F3", // Celeste brillante
+    "#5BC5F2", // Azul suave
+    "#0077C8", // Azul medio
+    "#7FDBFF", // Azul hielo
+    "#28A745", // Verde éxito
+    "#FFC107", // Amarillo advertencia
+    "#FF6F00", // Naranja atención
+    "#DC3545"  // Rojo alerta
+];
+
+const coloresEstado = {
+    "En Proceso": "#009FE3",
+    "Cotizado": "#FFC107",
+    "En Espera": "#FF6F00",
+    "Finalizado": "#28A745",
+    "Entregado": "#004B87"
+};
+
+async function guardarEquipo() {
+
+    try {
+
+        const registro = {
+            ingreso: document.getElementById("ingreso").value || null,
+            modelo: document.getElementById("modelo").value,
+            serial: document.getElementById("serial").value,
+            zona: document.getElementById("zona").value,
+            cliente: document.getElementById("cliente").value,
+            tipo_labor: document.getElementById("tipo_labor").value,
+            fecha_estimada: document.getElementById("fecha_estimada").value || null,
+            estado: document.getElementById("estado").value,
+            progreso: Number(document.getElementById("progreso").value || 0),
+            responsable: document.getElementById("responsable").value,
+            fecha_entrega:document.getElementById("fecha_entrega").value || null,
+            observaciones: document.getElementById("observaciones").value
+        };
+
+        console.log("Registro enviado:", registro);
+
+        const endpoint = registroEditando
+            ? `${URL}/rest/v1/equipos?id=eq.${registroEditando}`
+            : `${URL}/rest/v1/equipos`;
+
+        const metodo = registroEditando
+            ? "PATCH"
+            : "POST";
+
+        const response = await fetch(endpoint, {
+            method: metodo,
+            headers: {
+                ...getHeaders(),
+                "Content-Type": "application/json",
+                "Prefer": "return=representation"
+            },
+            body: JSON.stringify(registro)
+        });
+
+        const resultado = await response.text();
+
+        console.log("STATUS:", response.status);
+        console.log("RESPUESTA:", resultado);
+
+        if (!response.ok) {
+            alert(resultado);
+            return;
+        }
+
+        alert(
+            registroEditando
+                ? "Registro actualizado"
+                : "Registro guardado"
+        );
+
+        registroEditando = null;
+
+        limpiarFormulario();
+
+        cargarEquipos();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(error.message);
+    }
+}
+
+async function editar(id) {
 
     try {
 
         const response = await fetch(
-            `${URL}/rest/v1/equipos?select=*`,
+            `${URL}/rest/v1/equipos?id=eq.${id}&select=*`,
             {
-                method: "GET",
                 headers: getHeaders()
             }
         );
 
         const datos = await response.json();
 
-        console.log("STATUS:", response.status);
-        console.log("DATOS:", datos);
+        console.log(datos);
 
-        if (!response.ok) {
-
-            document.getElementById("tabla").innerHTML = `
-                <tr>
-                    <td colspan="11" class="error">
-                        Error ${response.status}: ${JSON.stringify(datos)}
-                    </td>
-                </tr>
-            `;
-
+        if (!datos.length) {
+            alert("Registro no encontrado");
             return;
         }
 
-        if (!Array.isArray(datos)) {
+        const r = datos[0];
 
-            document.getElementById("tabla").innerHTML = `
-                <tr>
-                    <td colspan="11" class="error">
-                        La respuesta recibida no es válida
-                    </td>
-                </tr>
-            `;
+        document.getElementById("ingreso").value =
+            r.ingreso || "";
 
-            return;
-        }
+        document.getElementById("modelo").value =
+            r.modelo || "";
 
-        mostrarTabla(datos);
+        document.getElementById("serial").value =
+            r.serial || "";
+
+        document.getElementById("zona").value =
+            r.zona || "";
+
+        document.getElementById("cliente").value =
+            r.cliente || "";
+
+        document.getElementById("tipo_labor").value =
+            r.tipo_labor || "";
+
+        document.getElementById("fecha_estimada").value =
+            r.fecha_estimada || "";
+
+        document.getElementById("estado").value =
+            r.estado || "";
+
+        document.getElementById("progreso").value =
+            r.progreso || 0;
+
+        document.getElementById("responsable").value =
+            r.responsable || "";
+        document.getElementById("fecha_entrega").value =
+            r.fecha_entrega || "";
+        document.getElementById("observaciones").value =
+            r.observaciones || "";
+
+        registroEditando = id;
+
+        btnGuardar.innerText = "Actualizar";
+
+        tituloFormulario.innerText =
+            "Editar Registro";
 
     } catch (error) {
 
         console.error(error);
 
-        document.getElementById("tabla").innerHTML = `
-            <tr>
-                <td colspan="11" class="error">
-                    Error de conexión con Supabase
-                </td>
-            </tr>
-        `;
     }
 }
+async function eliminar(id){
 
-function mostrarTabla(datos) {
+    if(!confirm("Eliminar registro?"))
+        return;
 
-    const tabla = document.getElementById("tabla");
+    await fetch(
 
-    tabla.innerHTML = "";
+        URL +
+        "/rest/v1/equipos?id=eq." +
+        id,
 
-    datos.forEach(r => {
+        {
 
-        let color = "high";
+            method:"DELETE",
 
-        if ((r.progreso || 0) < 40) {
-            color = "low";
-        } else if ((r.progreso || 0) < 80) {
-            color = "mid";
+            headers:getHeaders()
+
         }
 
-        tabla.innerHTML += `
-        <tr>
-            <td>${r.ingreso || ""}</td>
-            <td>${r.modelo || ""}</td>
-            <td>${r.serial || ""}</td>
-            <td>${r.zona || ""}</td>
-            <td>${r.cliente || ""}</td>
-            <td>${r.tipo_labor || ""}</td>
-            <td>${r.fecha_estimada || ""}</td>
-            <td>${r.estado || ""}</td>
+    );
 
-            <td>
-                <div class="progress">
-                    <div
-                        class="progress-bar ${color}"
-                        style="width:${r.progreso || 0}%">
-                        ${r.progreso || 0}%
-                    </div>
-                </div>
-            </td>
+    cargarEquipos();
 
-            <td>${r.responsable || ""}</td>
-            <td>${r.observaciones || ""}</td>
-        </tr>
-        `;
-    });
 }
 
-function filtrar() {
+function limpiarFormulario(){
 
-    const cliente =
-        document.getElementById("filtroCliente")
-        .value
-        .toLowerCase();
+    ingreso.value = "";
+    modelo.value = "";
+    serial.value = "";
+    zona.value = "";
+    cliente.value = "";
+    tipo_labor.value = "";
+    fecha_estimada.value = "";
+    progreso.value = "";
+    responsable.value = "";
+    fecha_entrega.value = "";
+    observaciones.value = "";
 
-    const serial =
-        document.getElementById("filtroSerial")
-        .value
-        .toLowerCase();
+    estado.selectedIndex = 0;
+
+}
+
+function mostrarTabla(datos){
+
+    tabla.innerHTML="";
+
+    datos.forEach(r=>{
+
+        let color="high";
+
+        if(r.progreso<40)
+            color="low";
+        else if(r.progreso<80)
+            color="mid";
+
+        tabla.innerHTML += `
+
+        <tr>
+        <td>${r.ingreso}</td>
+        <td>${r.modelo}</td>
+        <td>${r.serial}</td>
+        <td>${r.zona}</td>
+        <td>${r.cliente}</td>
+        <td>${r.tipo_labor}</td>
+        <td>
+    ${r.fecha_estimada
+        ? r.fecha_estimada
+        : " "}
+</td>
+        <td>${r.estado}</td>
+        <td>
+
+        <div class="progress">
+
+            <div
+            class="progress-bar ${color}"
+            style="width:${r.progreso}%">
+
+            ${r.progreso}%
+
+            </div>
+
+        </div>
+        
+        <td>${r.responsable}</td>
+       <td>${r.fecha_entrega || ""}</td>
+        <td>${r.observaciones}</td>
+
+      
+
+        </td>
+
+        </tr>
+
+        `;
+
+    });
+
+}
+
+function actualizarKPIs(datos){
+
+    kpiTotal.innerText =
+        datos.length;
+
+    kpiTerminados.innerText =
+        datos.filter(
+            x => x.estado === "Entregado"
+        ).length;
+
+    kpiProceso.innerText =
+        datos.filter(
+            x => x.estado !== "Entregado"
+        ).length;
+
+    let hoy = new Date();
+
+    kpiRetrasados.innerText =
+        datos.filter(
+            x =>
+                x.estado !== "Entregado" &&
+                x.fecha_estimada &&
+                new Date(x.fecha_estimada) < hoy
+        ).length;
+
+    const entregados =
+        datos.filter(
+            x =>
+                x.fecha_estimada &&
+                x.fecha_entrega
+        );
+
+    const aTiempo =
+        entregados.filter(
+            x =>
+                new Date(x.fecha_entrega)
+                <=
+                new Date(x.fecha_estimada)
+        );
+
+    const cumplimiento =
+        entregados.length > 0
+        ?
+        (
+            aTiempo.length /
+            entregados.length
+        ) * 100
+        :
+        0;
+
+    document.getElementById(
+        "kpiCumplimiento"
+    ).innerText =
+        cumplimiento.toFixed(1) + "%";
+
+   
+       
+}
+
+
+
+
+function actualizarGraficos(datos){
+
+    // ===== ESTADO =====
+
+    let estados = {};
+
+    datos.forEach(x=>{
+        estados[x.estado] = (estados[x.estado] || 0) + 1;
+    });
+
+    if(graficoEstado) graficoEstado.destroy();
+
+    graficoEstado = new Chart(
+        document.getElementById("graficoEstado"),
+        {
+            type:"doughnut",
+            data:{
+                labels:Object.keys(estados),
+                datasets:[{
+                    data:Object.values(estados),
+                    backgroundColor:Object.keys(estados)
+                        .map(e => coloresEstado[e] || "#666666"),
+                    borderColor:"#FFFFFF",
+                    borderWidth:2
+                }]
+            },
+            options:{
+                responsive:true,
+                plugins:{
+                    legend:{
+                        position:"bottom"
+                    }
+                }
+            }
+        }
+    );
+
+    // ===== ZONAS =====
+
+    let zonas = {};
+
+    datos.forEach(x=>{
+        zonas[x.zona] = (zonas[x.zona] || 0) + 1;
+    });
+
+    if(graficoZona) graficoZona.destroy();
+
+    graficoZona = new Chart(
+        document.getElementById("graficoZona"),
+        {
+            type:"bar",
+            data:{
+                labels:Object.keys(zonas),
+                datasets:[{
+                    label:"Equipos",
+                    data:Object.values(zonas),
+                    backgroundColor:Object.keys(zonas)
+                        .map((_,i)=>atlasColors[i % atlasColors.length]),
+                    borderRadius:8
+                }]
+            },
+            options:{
+                responsive:true,
+                plugins:{
+                    legend:{
+                        display:false
+                    }
+                },
+                scales:{
+                    y:{
+                        beginAtZero:true
+                    }
+                }
+            }
+        }
+    );
+
+    // ===== TIPO LABOR =====
+
+    let labores = {};
+
+    datos.forEach(x=>{
+        labores[x.tipo_labor] =
+            (labores[x.tipo_labor] || 0) + 1;
+    });
+
+    if(graficoLabor) graficoLabor.destroy();
+
+    graficoLabor = new Chart(
+        document.getElementById("graficoLabor"),
+        {
+            type:"bar",
+            data:{
+                labels:Object.keys(labores),
+                datasets:[{
+                    label:"Equipos",
+                    data:Object.values(labores),
+                    backgroundColor:Object.keys(labores)
+                        .map((_,i)=>atlasColors[i % atlasColors.length]),
+                    borderRadius:8
+                }]
+            },
+            options:{
+                responsive:true,
+                indexAxis:"y",
+                plugins:{
+                    legend:{
+                        display:false
+                    }
+                }
+            }
+        }
+    );
+
+    // ===== INGRESOS POR MES =====
+
+    let meses = {};
+
+    datos.forEach(x=>{
+
+        if(!x.ingreso) return;
+
+        const fecha = new Date(x.ingreso);
+
+        const mes =
+            fecha.getFullYear() + "-" +
+            String(fecha.getMonth()+1)
+            .padStart(2,"0");
+
+        meses[mes] = (meses[mes] || 0) + 1;
+
+    });
+
+    const mesesOrdenados =
+        Object.keys(meses).sort();
+
+    if(graficoIngresos)
+        graficoIngresos.destroy();
+
+    graficoIngresos = new Chart(
+        document.getElementById("graficoIngresos"),
+        {
+            type:"line",
+            data:{
+                labels:mesesOrdenados,
+                datasets:[{
+                    label:"Ingresos",
+                    data:mesesOrdenados.map(
+                        m => meses[m]
+                    ),
+                    borderColor:"#004B87",
+                    backgroundColor:"rgba(0,159,227,0.20)",
+                    pointBackgroundColor:"#009FE3",
+                    pointBorderColor:"#004B87",
+                    pointRadius:6,
+                    pointHoverRadius:8,
+                    fill:true,
+                    tension:0.4
+                }]
+            },
+            options:{
+                responsive:true,
+                plugins:{
+                    legend:{
+                        position:"bottom"
+                    }
+                },
+                scales:{
+                    y:{
+                        beginAtZero:true
+                    }
+                }
+            }
+        }
+    );
+}
+function filtrar(){
+
+    const texto =
+        buscar.value.toLowerCase();
+
+    const datosFiltrados = [];
 
     document
         .querySelectorAll("#tabla tr")
         .forEach(fila => {
 
-            const texto =
-                fila.innerText.toLowerCase();
+            const coincide =
+                fila.innerText
+                    .toLowerCase()
+                    .includes(texto);
 
             fila.style.display =
-                texto.includes(cliente) &&
-                texto.includes(serial)
-                ? ""
-                : "none";
+                coincide ? "" : "none";
+
+            if(coincide){
+
+                datosFiltrados.push({
+
+                    ingreso:
+                        fila.cells[0].innerText,
+
+                    zona:
+                        fila.cells[3].innerText,
+
+                    tipo_labor:
+                        fila.cells[5].innerText,
+
+                    fecha_estimada:
+                        fila.cells[6].innerText,
+
+                    fecha_entrega:
+                        fila.cells[10].innerText,
+
+                    estado:
+                        fila.cells[7].innerText
+
+                });
+
+            }
 
         });
+
+    actualizarKPIs(datosFiltrados);
+    actualizarGraficos(datosFiltrados);
+
 }
 
+window.onload = () => {
+
 cargarEquipos();
+
+};
+
 
 </script>
 
