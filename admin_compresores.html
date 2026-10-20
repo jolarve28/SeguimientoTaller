@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Administrador Compresores</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+    margin:0;
+    padding:20px;
+    font-family:"Segoe UI",sans-serif;
+    background:#F4F6F8;
+    color:#333;
+}
+
+h1{
+    text-align:center;
+    color:white;
+    margin:0;
+    padding:20px;
+    background:#004B93;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+}
+
+#busqueda{
+    width:100%;
+    padding:12px;
+    border:1px solid #d0d7de;
+    border-radius:8px;
+    margin-bottom:20px;
+    font-size:14px;
+}
+
+.formulario{
+    display:grid;
+    grid-template-columns:
+    repeat(auto-fit,minmax(250px,1fr));
+    gap:12px;
+    margin-bottom:20px;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.equipo-prestado{
+
+    background:#FFF3CD !important;
+
+    color:#000 !important;
+}
+.campo{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+.campo label{
+    font-weight:600;
+    color:#004B93;
+}
+
+input,
+textarea,
+select{
+    padding:10px;
+    border:1px solid #d0d7de;
+    border-radius:8px;
+    font-size:14px;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+    outline:none;
+    border-color:#009CDE;
+    box-shadow:0 0 5px rgba(0,156,222,.4);
+}
+
+.btn-guardar{
+    background:#009CDE;
+    color:white;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    padding:12px;
+    transition:.3s;
+}
+
+.btn-guardar:hover{
+    background:#004B93;
+}
+
+.tabla{
+
+    margin:20px 0;
+
+    background:#1B263B;
+
+    border-radius:15px;
+
+    padding:0;
+
+    overflow:auto;
+
+    height:600px;   /* altura fija */
+
+    width:100%;
+}
+
+table{
+
+    width:100%;
+
+    min-width:1800px;
+
+    border-collapse:separate;
+    border-spacing:0;
+
+    background:#243447;
+
+    color:#ffffff;
+    
+    border-radius:10px;
+
+    overflow:hidden;
+
+ overflow-y:auto;
+    overflow-x:auto;
+    max-height:75vh;
+    position:relative;
+    border-collapse:separate;
+    border-spacing:0;
+
+}
+tr:hover{
+    background:#00B4D8;
+    color:#000000;
+}
+
+tr:hover td{
+    color:#000000;
+}
+th{
+    position:sticky;
+    top:0;
+
+    background:#004B93;
+    color:white;
+
+    padding:8px 6px;
+
+    font-size:11px;
+    font-weight:600;
+
+    white-space:nowrap;
+
+    z-index:1000;
+
+    border-bottom:2px solid #009CDE;
+
+    box-shadow:0 2px 4px rgba(0,0,0,.3);
+}
+
+td{
+   padding:6px 4px;
+    font-size:11px;
+    border-bottom:1px solid #3A4D66;
+    white-space:nowrap;
+    vertical-align:middle;
+}
+
+tr:nth-child(even){
+    background:#f8fafc;
+}
+
+tr:hover{
+    background:#eaf4fb;
+}
+
+.btn-editar{
+    background:#FFC107;
+    color:#000;
+    border:none;
+    border-radius:6px;
+    padding:8px 12px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-editar:hover{
+    background:#e0a800;
+}
+
+.btn-eliminar{
+    background:#DC3545;
+    color:white;
+    border:none;
+    border-radius:6px;
+    padding:8px 12px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-eliminar:hover{
+    background:#b02a37;
+}
+
+.estado-operativo{
+    background:#28A745;
+    color:white;
+    padding:5px 10px;
+    border-radius:20px;
+    font-weight:bold;
+    text-align:center;
+}
+
+.estado-fuera{
+    background:#DC3545;
+    color:white;
+    padding:5px 10px;
+    border-radius:20px;
+    font-weight:bold;
+    text-align:center;
+}
+
+.estado-cliente{
+    background:#FF9800;
+    color:white;
+    padding:5px 10px;
+    border-radius:20px;
+    font-weight:bold;
+    text-align:center;
+}
+
+.disponible{
+    background:#28A745;
+    color:white;
+    padding:5px 10px;
+    border-radius:20px;
+    text-align:center;
+    font-weight:bold;
+}
+
+.no-disponible{
+    background:#DC3545;
+    color:white;
+    padding:5px 10px;
+    border-radius:20px;
+    text-align:center;
+    font-weight:bold;
+}
+
+img{
+    width:80px;
+    border-radius:8px;
+    border:1px solid #d0d7de;
+    transition:.3s;
+}
+
+img:hover{
+    transform:scale(1.8);
+    z-index:100;
+    position:relative;
+}
+
+::-webkit-scrollbar{
+    width:10px;
+    height:10px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#004B93;
+    border-radius:10px;
+}
+
+::-webkit-scrollbar-track{
+    background:#f0f0f0;
+}
+.btn-exportar{
+
+    background:#28A745;
+
+    color:white;
+
+    border:none;
+
+    border-radius:8px;
+
+    padding:12px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+}
+
+.btn-exportar:hover{
+
+    background:#1f7a33;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Administrador de Compresores</h1>
+
+<input
+type="text"
+id="busqueda"
+placeholder="Buscar..."
+onkeyup="filtrar()">
+
+<div class="formulario">
+
+<input id="marca" placeholder="Marca">
+<input id="modelo" placeholder="Modelo">
+<input id="tipo" placeholder="Tipo">
+<input id="serial" placeholder="Serial">
+
+<input id="potencia_hp"
+type="number"
+placeholder="Potencia HP">
+
+<input id="caudal_cfm"
+type="number"
+placeholder="Caudal CFM">
+
+<input id="voltaje"
+placeholder="Voltaje">
+
+<input id="precio_alquiler"
+placeholder="Precio alquiler">
+
+<div class="campo">
+    <label>Estado</label>
+    <select id="estado">
+        <option value="">Seleccione...</option>
+        <option value="Operativo">Operativo</option>
+        <option value="Inoperativo">Inoperativo</option>
+        <option value="Cliente">Cliente</option>
+    </select>
+</div>
+
+<div class="campo">
+    <label>Disponibilidad</label>
+    <select id="disponibilidad">
+        <option value="">Seleccione...</option>
+        <option value="Disponible">Disponible</option>
+        <option value="No disponible">No disponible</option>
+    </select>
+</div>
+
+<div class="campo">
+    <label>Fecha Salida</label>
+    <input
+        type="date"
+        id="fecha_salida">
+</div>
+
+<div class="campo">
+    <label>Fecha Retorno</label>
+    <input
+        type="date"
+        id="fecha_retorno">
+</div>
+
+<div class="campo">
+    <label>Ubicación</label>
+    <input
+        type="text"
+        id="ubicacion">
+</div>
+
+<div class="campo">
+    <label>Responsable</label>
+    <input
+        type="text"
+        id="responsable">
+</div>
+
+
+<input id="imagen"
+placeholder="URL imagen">
+
+<textarea
+id="observaciones"
+placeholder="Observaciones">
+</textarea>
+
+<textarea
+id="medidas"
+placeholder="Medidas">
+</textarea>
+
+<button
+class="btn-guardar"
+onclick="guardarRegistro()">
+
+Guardar
+
+</button>
+
+<button
+type="button"
+class="btn-exportar"
+onclick="exportarExcel()">
+
+Exportar Excel
+
+</button>
+
+
+</div>
+
+
+
+
+
+<div class="tabla">
+
+<table id="tabla">
+
+</table>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+
+
+const SUPABASE_URL =
+"https://tztuhdxkrdkhawknpmci.supabase.co";
+
+const SUPABASE_ANON_KEY =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
+
+
+const supabaseClient =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
+
+let datos = [];
+let datosFiltrados = [];
+let idEditar = null;
+
+async function cargarDatos(){
+
+    const {
+        data,
+        error
+    } =
+    await supabaseClient
+        .from("compresores")
+        .select("*")
+        .order("id");
+
+    if(error){
+
+        console.error(error);
+
+        alert(
+            "Error cargando datos:\n" +
+            error.message
+        );
+
+        return;
+    }
+
+    datos = data;
+
+    /* datos para exportar */
+    datosFiltrados = data;
+
+    mostrarTabla(data);
+}
+
+function exportarExcel(){
+
+    const PASSWORD_EXPORTAR = "Atlas2026";
+
+    
+    const clave = prompt(
+        "Ingrese la contraseña para exportar el archivo:"
+    );
+
+    if(clave === null){
+        return;
+    }
+
+    if(clave !== PASSWORD_EXPORTAR){
+
+        alert(
+            "Contraseña incorrecta"
+        );
+
+        return;
+    }
+
+    const datosExportar =
+
+        (datosFiltrados &&
+         datosFiltrados.length > 0)
+
+        ? datosFiltrados
+
+        : datos;
+
+    if(datosExportar.length === 0){
+
+        alert(
+            "No hay registros para exportar."
+        );
+
+        return;
+    }
+
+    const registros =
+        datosExportar.map(fila => ({
+
+            ID: fila.id,
+            Marca: fila.marca,
+            Modelo: fila.modelo,
+            Tipo: fila.tipo,
+            Serial: fila.serial,
+            Potencia_HP: fila.potencia_hp,
+            Caudal_CFM: fila.caudal_cfm,
+            Voltaje: fila.voltaje,
+            Precio_Alquiler: fila.precio_alquiler,
+            Estado: fila.estado,
+            Disponibilidad: fila.disponibilidad,
+            Fecha_Salida: fila.fecha_salida,
+            Fecha_Retorno: fila.fecha_retorno,
+            Ubicacion: fila.ubicacion,
+            Responsable: fila.responsable,
+            Observaciones: fila.observaciones,
+            Medidas: fila.medidas
+
+        }));
+
+    const hoja =
+        XLSX.utils.json_to_sheet(
+            registros
+        );
+
+    const libro =
+        XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        libro,
+        hoja,
+        "Compresores"
+    );
+
+    const fecha =
+        new Date()
+        .toISOString()
+        .split("T")[0];
+
+    XLSX.writeFile(
+        libro,
+        `Compresores_${fecha}.xlsx`
+    );
+
+    alert(
+        `${registros.length} registros exportados correctamente.`
+    );
+
+}
+
+
+function filtrar(){
+
+    const texto =
+        document
+        .getElementById("busqueda")
+        .value
+        .toLowerCase();
+
+    datosFiltrados =
+        datos.filter(f =>
+
+            JSON.stringify(f)
+            .toLowerCase()
+            .includes(texto)
+
+        );
+
+    mostrarTabla(datosFiltrados);
+
+}
+
+
+
+
+function mostrarTabla(registros){
+
+    const tabla =
+    document.getElementById("tabla");
+
+    tabla.innerHTML = `
+    <tr>
+        <th>ID</th>
+        <th>Marca</th>
+        <th>Modelo</th>
+        <th>Tipo</th>
+        <th>Serial</th>
+        <th>Potencia</th>
+        <th>Caudal</th>
+        <th>Voltaje</th>
+        <th>Precio</th>
+        <th>Estado</th>
+        <th>Disponibilidad</th>
+<th>Fecha Salida</th>
+<th>Fecha Retorno</th>
+<th>Ubicación</th>
+<th>Responsable</th>
+<th>Observaciones</th>
+<th>Medidas</th>
+<th>Imagen</th>
+<th>Acciones</th>
+    </tr>
+    `;
+
+    registros.forEach(fila=>{
+
+        tabla.innerHTML += `
+        <tr>
+
+            <td>${fila.id}</td>
+
+            <td>${fila.marca||''}</td>
+
+            <td>${fila.modelo||''}</td>
+
+            <td>${fila.tipo||''}</td>
+
+            <td>${fila.serial||''}</td>
+
+            <td>${fila.potencia_hp||''}</td>
+
+            <td>${fila.caudal_cfm||''}</td>
+
+            <td>${fila.voltaje||''}</td>
+
+            <td>${fila.precio_alquiler||''}</td>
+
+          <td>${fila.estado || ''}</td>
+
+         <td>${fila.disponibilidad || ''}</td>
+
+        <td>${fila.fecha_salida || ''}</td>
+
+       <td>${fila.fecha_retorno || ''}</td>
+
+       <td>${fila.ubicacion || ''}</td>
+
+       <td>${fila.responsable || ''}</td>
+
+       <td>${fila.observaciones || ''}</td>
+
+            <td>${fila.medidas||''}</td>
+
+            <td>
+
+            ${
+            fila.imagen
+
+            ?
+
+            `<img
+            src="${fila.imagen}">`
+
+            :
+
+            ""
+            }
+
+            </td>
+
+            <td>
+
+            <button
+            class="btn-editar"
+            onclick="editar(${fila.id})">
+
+            Editar
+
+            </button>
+
+            <button
+            class="btn-eliminar"
+            onclick="eliminarRegistro(${fila.id})">
+
+            Eliminar
+
+            </button>
+
+            </td>
+
+        </tr>
+        `;
+    });
+
+}
+
+function formatearPrecio(valor){
+
+    if(!valor) return '';
+
+    return valor.toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+
+
+function editar(id){
+
+    const fila =
+    datos.find(x=>x.id===id);
+
+    if(!fila) return;
+
+    idEditar=id;
+
+    marca.value =
+    fila.marca||"";
+
+    modelo.value =
+    fila.modelo||"";
+
+    tipo.value =
+    fila.tipo||"";
+
+    serial.value =
+    fila.serial||"";
+
+    potencia_hp.value =
+    fila.potencia_hp||"";
+
+    caudal_cfm.value =
+    fila.caudal_cfm||"";
+
+    voltaje.value =
+    fila.voltaje||"";
+
+    precio_alquiler.value =
+    fila.precio_alquiler||"";
+
+    estado.value =
+    fila.estado||"";
+
+    disponibilidad.value =
+    fila.disponibilidad||"";
+fecha_salida.value =
+fila.fecha_salida || "";
+
+fecha_retorno.value =
+fila.fecha_retorno || "";
+
+ubicacion.value =
+fila.ubicacion || "";
+
+responsable.value =
+fila.responsable || "";
+
+
+    observaciones.value =
+    fila.observaciones||"";
+
+    imagen.value =
+    fila.imagen||"";
+
+    medidas.value =
+    fila.medidas||"";
+
+}
+
+async function guardarRegistro() {
+
+    try {
+
+        const registro = {
+
+            marca: marca.value.trim(),
+            modelo: modelo.value.trim(),
+            tipo: tipo.value.trim(),
+            serial: serial.value.trim(),
+
+            potencia_hp:
+                Number(potencia_hp.value) || 0,
+
+            caudal_cfm:
+                Number(caudal_cfm.value) || 0,
+
+            voltaje: voltaje.value.trim(),
+
+            precio_alquiler:
+                precio_alquiler.value.trim(),
+
+            estado:
+                estado.value.trim(),
+
+            disponibilidad:
+                disponibilidad.value.trim(),
+fecha_salida:
+    fecha_salida.value || null,
+
+fecha_retorno:
+    fecha_retorno.value || null,
+
+ubicacion:
+    ubicacion.value.trim(),
+
+responsable:
+    responsable.value.trim(),
+            observaciones:
+                observaciones.value.trim(),
+
+            imagen:
+                imagen.value.trim() || null,
+
+            medidas:
+                medidas.value.trim()
+        };
+
+        let resultado;
+
+        if (idEditar) {
+
+            resultado = await supabaseClient
+                .from("compresores")
+                .update(registro)
+                .eq("id", idEditar);
+
+        } else {
+
+            resultado = await supabaseClient
+                .from("compresores")
+                .insert([registro]);
+
+        }
+
+        if (resultado.error) {
+
+            console.error(resultado.error);
+
+            alert(
+                "Error:\n" +
+                resultado.error.message
+            );
+
+            return;
+        }
+
+        alert(
+            idEditar
+            ? "Registro actualizado correctamente"
+            : "Registro agregado correctamente"
+        );
+
+        limpiar();
+
+        await cargarDatos();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Error inesperado:\n" +
+            error.message
+        );
+
+    }
+
+}
+
+async function eliminarRegistro(id){
+
+    const confirmar = confirm(
+        "¿Desea eliminar este registro?"
+    );
+
+    if(!confirmar){
+        return;
+    }
+
+    const { error } =
+    await supabaseClient
+        .from("compresores")
+        .delete()
+        .eq("id", id);
+
+    if(error){
+
+        alert(
+            "Error eliminando:\n" +
+            error.message
+        );
+
+        return;
+    }
+
+    alert(
+        "Registro eliminado correctamente"
+    );
+
+    cargarDatos();
+
+}
+
+function limpiar(){
+
+    idEditar=null;
+fecha_salida.value = "";
+fecha_retorno.value = "";
+ubicacion.value = "";
+responsable.value = "";
+    document
+    .querySelectorAll(
+        ".formulario input,.formulario textarea"
+    )
+    .forEach(x=>x.value="");
+}
+
+function filtrar(){
+
+    const texto =
+        document
+        .getElementById("busqueda")
+        .value
+        .toLowerCase();
+
+    datosFiltrados =
+        datos.filter(f =>
+
+            JSON.stringify(f)
+            .toLowerCase()
+            .includes(texto)
+
+        );
+
+    mostrarTabla(datosFiltrados);
+
+}
+
+cargarDatos();
+
+</script>
+
+</body>
+</html>
