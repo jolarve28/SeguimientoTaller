@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Compresores Respaldo</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    padding:20px;
+    font-family:'Roboto',sans-serif;
+    background:linear-gradient(to right,#0f2027,#203a43,#2c5364);
+    color:#fff;
+}
+
+h1{
+    font-family:'Orbitron',sans-serif;
+    text-align:center;
+    color:#00ffff;
+    text-shadow:0 0 10px #00ffff;
+}
+
+.filtros{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:20px;
+}
+
+.filtros select,
+.filtros input,
+.filtros button{
+
+    padding:10px;
+    border:none;
+    border-radius:6px;
+}
+
+.filtros button{
+    cursor:pointer;
+    background:#00ffff;
+    font-weight:bold;
+}
+
+.filtros button:hover{
+    background:#00d4d4;
+}
+
+.tabla-contenedor{
+
+    background:#1e1e1e;
+    border-radius:8px;
+    overflow:auto;
+    max-height:700px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th, td{
+    border:1px solid #444;
+    padding:10px;
+    text-align:center;
+}
+
+th{
+    background:#00ffff;
+    color:#000;
+    position:sticky;
+    top:0;
+}
+
+tr:hover{
+    background:#2c2c2c;
+}
+
+.disponible{
+    background:#00aa00;
+    color:white;
+    font-weight:bold;
+}
+
+.no-disponible{
+    background:#cc0000;
+    color:white;
+    font-weight:bold;
+}
+
+.estado-operativo{
+    background:#28a745;
+    color:white;
+    font-weight:bold;
+}
+
+.estado-fuera{
+    background:#dc3545;
+    color:white;
+    font-weight:bold;
+}
+
+.barra{
+    background:#333;
+    height:18px;
+    border-radius:4px;
+}
+
+.barra-interna{
+    height:100%;
+}
+
+.valor{
+    font-size:.8rem;
+}
+
+.observaciones{
+    max-width:250px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.observaciones:hover{
+    white-space:normal;
+}
+
+.imagen-miniatura{
+    width:100px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+#modal-imagen{
+
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,.85);
+
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+#modal-imagen img{
+
+    max-width:85%;
+    max-height:85%;
+    border-radius:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>COMPRESORES DE RESPALDO</h1>
+
+<div class="filtros">
+
+<select id="tipo">
+    <option value="">Todos los tipos</option>
+    <option value="compresor">Compresor</option>
+    <option value="secador">Secador</option>
+</select>
+
+<select id="marca">
+    <option value="">Todas las marcas</option>
+    <option>Atlas Copco</option>
+    <option>SullAir</option>
+    <option>Gardner Denver</option>
+    <option>Kaeser</option>
+    <option>Kaishan</option>
+    <option>Abac Alup</option>
+    <option>Mikropor</option>
+</select>
+
+<select id="voltaje">
+    <option value="">Todos</option>
+    <option>115V</option>
+    <option>220V</option>
+    <option>440V</option>
+</select>
+
+<input
+    id="potencia"
+    type="number"
+    placeholder="Potencia mínima HP">
+
+<select id="disponible">
+    <option value="">Todos</option>
+    <option value="disponible" selected>Disponible</option>
+    <option value="no disponible">No disponible</option>
+</select>
+
+<select id="estado">
+    <option value="">Todos</option>
+    <option value="operativo">Operativo</option>
+    <option value="inoperativo">Inoperativo</option>
+</select>
+
+<button onclick="filtrar()">
+Filtrar
+</button>
+
+<button onclick="cargarDatos()">
+Actualizar
+</button>
+
+</div>
+
+<div class="tabla-contenedor">
+
+<table id="tabla-compresores">
+
+</table>
+
+</div>
+
+<div id="modal-imagen" onclick="cerrarModal()">
+    <img id="imagen-ampliada">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL =
+"https://tztuhdxkrdkhawknpmci.supabase.co";
+
+const SUPABASE_ANON_KEY =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
+
+const supabaseClient =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
+
+let datosOriginales = [];
+
+async function cargarDatos(){
+
+    const {data,error} =
+    await supabaseClient
+        .from("compresores")
+        .select("*")
+        .order("id");
+
+    if(error){
+
+        console.error(error);
+        alert("Error consultando Supabase");
+        return;
+    }
+
+    datosOriginales = data;
+
+    mostrarTabla(
+        data.filter(
+            x =>
+            (x.disponibilidad||"")
+            .toLowerCase()
+            === "disponible"
+        )
+    );
+}
+
+function crearBarra(valor,maximo,color){
+
+    const porcentaje =
+    Math.min(
+        (valor/maximo)*100,
+        100
+    );
+
+    return `
+        <div class="barra">
+            <div
+                class="barra-interna"
+                style="width:${porcentaje}%;background:${color}">
+            </div>
+        </div>
+
+        <div class="valor">
+            ${valor}
+        </div>
+    `;
+}
+
+function mostrarTabla(datos) {
+
+    const tabla =
+        document.getElementById(
+            "tabla-compresores"
+        );
+
+    tabla.innerHTML = "";
+
+    if (datos.length === 0) {
+
+        tabla.innerHTML = `
+        <tr>
+            <td colspan="14">
+                No se encontraron resultados
+            </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+    tabla.innerHTML = `
+    <tr>
+        <th>#</th>
+         <th>Marca</th>
+        <th>Tipo</th>
+        <th>Modelo</th>
+        <th>Serial</th>
+        <th>Voltaje</th>
+        <th>Potencia HP</th>
+        <th>Caudal CFM</th>
+        <th>Precio Alquiler</th>
+        <th>Disponibilidad</th>
+        <th>Estado</th>
+        <th>Observaciones</th>
+        <th>Imagen</th>
+    </tr>
+    `;
+
+    datos.forEach((fila, index) => {
+
+        const disponibilidad =
+            (fila.disponibilidad || "")
+            .toLowerCase()
+            .trim();
+
+        const estado =
+            (fila.estado || "")
+            .toLowerCase()
+            .trim();
+
+        let claseEstado = "estado-operativo";
+
+        if (estado.includes("inoperativo")) {
+            claseEstado = "estado-fuera";
+        }
+
+        tabla.innerHTML += `
+        <tr>
+
+            <td>${index + 1}</td>
+
+             <td>${fila.marca || ''}</td>
+
+            <td>${fila.tipo || ''}</td>
+
+           
+
+            <td>${fila.modelo || ''}</td>
+
+            <td>${fila.serial || ''}</td>
+
+            <td>${fila.voltaje || ''}</td>
+
+            <td>
+                ${crearBarra(
+                    parseFloat(fila.potencia_hp) || 0,
+                    100,
+                    "#00ffff"
+                )}
+            </td>
+
+            <td>
+                ${crearBarra(
+                    parseFloat(fila.caudal_cfm) || 0,
+                    500,
+                    "#ff00ff"
+                )}
+            </td>
+
+            <td>
+                ${fila.precio_alquiler || ''}
+            </td>
+
+            <td class="${
+                disponibilidad === "disponible"
+                ? "disponible"
+                : "no-disponible"
+            }">
+                ${fila.disponibilidad || ''}
+            </td>
+
+            <td class="${claseEstado}">
+                ${fila.estado || ''}
+            </td>
+
+            <td>
+                <div
+                    class="observaciones"
+                    title="${fila.observaciones || ''}">
+                    ${fila.observaciones || ''}
+                </div>
+            </td>
+
+
+            <td>
+                ${
+                    fila.imagen
+                    ?
+                    `<img
+                        src="${fila.imagen}"
+                        alt="Compresor"
+                        class="imagen-miniatura"
+                        title="${fila.medidas || ''}"
+                        onclick="abrirModal('${fila.imagen}')"
+                        onerror="this.style.display='none';"
+                    >`
+                    :
+                    ''
+                }
+            </td>
+
+        </tr>
+        `;
+    });
+
+}
+
+function abrirModal(url){
+
+    document
+    .getElementById(
+        "imagen-ampliada"
+    )
+    .src = url;
+
+    document
+    .getElementById(
+        "modal-imagen"
+    )
+    .style.display="flex";
+}
+
+function cerrarModal(){
+
+    document
+    .getElementById(
+        "modal-imagen"
+    )
+    .style.display="none";
+}
+
+function filtrar(){
+
+    const tipo =
+    document.getElementById(
+        "tipo"
+    ).value.toLowerCase();
+
+    const marca =
+    document.getElementById(
+        "marca"
+    ).value.toLowerCase();
+
+    const voltaje =
+    document.getElementById(
+        "voltaje"
+    ).value.toLowerCase();
+
+    const estado =
+    document.getElementById(
+        "estado"
+    ).value.toLowerCase();
+
+    const disponible =
+    document.getElementById(
+        "disponible"
+    ).value.toLowerCase();
+
+    const potencia =
+    parseFloat(
+        document.getElementById(
+            "potencia"
+        ).value
+    ) || 0;
+
+    const filtrados =
+    datosOriginales.filter(f=>{
+
+        return(
+
+            (tipo==='' ||
+            (f.tipo||'')
+            .toLowerCase()===tipo)
+
+            &&
+
+            (marca==='' ||
+            (f.marca||'')
+            .toLowerCase()
+            .includes(marca))
+
+            &&
+
+            (voltaje==='' ||
+            (f.voltaje||'')
+            .toLowerCase()===voltaje)
+
+            &&
+
+            (estado==='' ||
+            (f.estado||'')
+            .toLowerCase()===estado)
+
+            &&
+
+            (disponible==='' ||
+            (f.disponibilidad||'')
+            .toLowerCase()===disponible)
+
+            &&
+
+            ((parseFloat(
+                f.potencia_hp
+            )||0) >= potencia)
+
+        );
+
+    });
+
+    mostrarTabla(filtrados);
+}
+
+document.addEventListener(
+    "keydown",
+    e=>{
+        if(e.key==="Escape"){
+            cerrarModal();
+        }
+    }
+);
+
+cargarDatos();
+
+</script>
+
+</body>
+</html>
