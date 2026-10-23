@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard Contratos Atlas Copco</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+:root{
+    --atlas:#004B93;
+    --celeste:#00A3E0;
+    --verde:#28a745;
+    --amarillo:#ffc107;
+    --rojo:#dc3545;
+    --gris:#f4f6f9;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:var(--gris);
+}
+
+header{
+    background:var(--atlas);
+    color:white;
+    padding:20px;
+}
+
+.container{
+    padding:20px;
+}
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.card{
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    box-shadow:0 3px 8px rgba(0,0,0,.1);
+}
+
+.card h3{
+    color:var(--atlas);
+    margin-bottom:10px;
+}
+
+.valor{
+    font-size:30px;
+    font-weight:bold;
+}
+
+.toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:15px;
+}
+
+.toolbar input,
+.toolbar select{
+    padding:10px;
+    border:1px solid #ddd;
+    border-radius:6px;
+}
+
+.tabla{
+    background:white;
+    border-radius:10px;
+    overflow:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:var(--atlas);
+    color:white;
+    padding:10px;
+    position:sticky;
+    top:0;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+
+tr:hover{
+    background:#eef8ff;
+}
+
+.badge{
+    color:white;
+    border-radius:20px;
+    padding:4px 10px;
+}
+
+.verde{
+    background:var(--verde);
+}
+
+.amarillo{
+    background:var(--amarillo);
+    color:black;
+}
+
+.rojo{
+    background:var(--rojo);
+}
+
+.detalle{
+    display:none;
+    background:#eef8ff;
+}
+
+.equipos-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+    gap:10px;
+}
+
+.equipo-card{
+    background:white;
+    border-left:4px solid var(--celeste);
+    padding:10px;
+    border-radius:6px;
+}
+
+.grafica{
+    margin-top:20px;
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    height:350px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+<h1>Dashboard Gestión de Contratos Atlas Copco</h1>
+</header>
+
+<div class="container">
+
+<div class="dashboard">
+
+<div class="card">
+<h3>Contratos</h3>
+<div class="valor" id="kpiContratos">0</div>
+</div>
+
+<div class="card">
+<h3>Equipos</h3>
+<div class="valor" id="kpiEquipos">0</div>
+</div>
+
+<div class="card">
+<h3>Cumplimiento Total</h3>
+<div class="valor" id="kpiCumplimiento">0%</div>
+</div>
+
+<div class="card">
+<h3>Zona Norte</h3>
+<div class="valor" id="kpiNorte">0%</div>
+</div>
+
+<div class="card">
+<h3>Zona Centro</h3>
+<div class="valor" id="kpiCentro">0%</div>
+</div>
+
+<div class="card">
+<h3>Zona Occidente</h3>
+<div class="valor" id="kpiOccidente">0%</div>
+</div>
+
+<div class="card">
+<h3>Zona Sur</h3>
+<div class="valor" id="kpiSur">0%</div>
+</div>
+
+<div class="card">
+<h3>Contratos por vencer</h3>
+<div class="valor" id="kpiVencen">0</div>
+<small>Próximos 90 días</small>
+</div>
+
+</div>
+
+<div class="toolbar">
+
+<input
+type="text"
+id="buscar"
+placeholder="Buscar cliente">
+
+<select id="filtroZona">
+
+<option value="">Todas las zonas</option>
+<option>Zona Norte</option>
+<option>Zona Centro</option>
+<option>Zona Occidente</option>
+<option>Zona Sur</option>
+
+</select>
+
+</div>
+
+<div class="tabla">
+
+<table>
+
+<thead>
+
+<tr>
+<th>Cliente</th>
+<th>Contrato</th>
+<th>Zona</th>
+<th>Planeado</th>
+<th>Ejecutado</th>
+<th>Equipos</th>
+<th>%</th>
+<th>Fecha Fin</th>
+</tr>
+
+</thead>
+
+<tbody id="tbody"></tbody>
+
+</table>
+
+</div>
+
+<div class="grafica">
+
+<canvas id="grafica"></canvas>
+
+</div>
+
+</div>
+
+<script>
+
+const contratos=[
+
+{
+cliente:"ADMINISTRADORA COUNTRY",
+contrato:"700227591",
+zona:"Zona Centro",
+planeado:14,
+ejecutado:11,
+fechaFin:"2027-01-31",
+
+equipos:[
+{
+modelo:"SF11",
+serial:"AII696485"
+},
+{
+modelo:"SF11",
+serial:"AII501850"
+},
+{
+modelo:"SF8+",
+serial:"API772749"
+}
+]
+
+},
+
+{
+cliente:"GESTION CARGO FOODS",
+contrato:"700117828",
+zona:"Zona Norte",
+planeado:60,
+ejecutado:55,
+fechaFin:"2031-10-31",
+
+equipos:[
+{
+modelo:"ZT160VSD",
+serial:"APF252404"
+},
+{
+modelo:"ZT160VSD",
+serial:"APF252480"
+}
+]
+
+},
+
+{
+cliente:"PREBEL",
+contrato:"700269694",
+zona:"Zona Occidente",
+planeado:6,
+ejecutado:4,
+fechaFin:"2027-01-31",
+
+equipos:[
+{
+modelo:"GA75FF",
+serial:"API525353"
+}
+]
+
+},
+
+{
+cliente:"ALPLA",
+contrato:"700283857",
+zona:"Zona Sur",
+planeado:6,
+ejecutado:3,
+fechaFin:"2027-05-31",
+
+equipos:[
+{
+modelo:"GA160",
+serial:"APF245813"
+},
+{
+modelo:"GA200VSD",
+serial:"APF241343"
+}
+]
+
+}
+
+];
+
+function porcentaje(e,p){
+return ((e/p)*100).toFixed(1);
+}
+
+function colorCumplimiento(valor){
+
+if(valor>=80) return "verde";
+
+if(valor>=50) return "amarillo";
+
+return "rojo";
+
+}
+
+function cargarTabla(datos){
+
+const tbody=
+document.getElementById("tbody");
+
+tbody.innerHTML="";
+
+datos.forEach((c,i)=>{
+
+const pct=
+porcentaje(
+c.ejecutado,
+c.planeado
+);
+
+tbody.innerHTML+=`
+
+<tr class="contrato">
+
+<td>${c.cliente}</td>
+<td>${c.contrato}</td>
+<td>${c.zona}</td>
+<td>${c.planeado}</td>
+<td>${c.ejecutado}</td>
+
+<td>
+<span class="badge verde">
+${c.equipos.length}
+</span>
+</td>
+
+<td>
+<span class="badge ${colorCumplimiento(pct)}">
+${pct}%
+</span>
+</td>
+
+<td>${c.fechaFin}</td>
+
+</tr>
+
+<tr class="detalle" id="detalle${i}">
+
+<td colspan="8">
+
+<div class="equipos-grid">
+
+${c.equipos.map(e=>`
+
+<div class="equipo-card">
+
+<b>Modelo:</b> ${e.modelo}
+
+<br><br>
+
+<b>Serial:</b> ${e.serial}
+
+</div>
+
+`).join("")}
+
+</div>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+document
+.querySelectorAll(".contrato")
+.forEach((fila,i)=>{
+
+fila.onclick=()=>{
+
+const detalle=
+document.getElementById(
+"detalle"+i
+);
+
+detalle.style.display=
+detalle.style.display==="table-row"
+?
+"none"
+:
+"table-row";
+
+};
+
+});
+
+}
+
+function actualizarKPIs(){
+
+let equipos=0;
+let totalP=0;
+let totalE=0;
+
+const zonas={
+
+"Zona Norte":{p:0,e:0},
+"Zona Centro":{p:0,e:0},
+"Zona Occidente":{p:0,e:0},
+"Zona Sur":{p:0,e:0}
+
+};
+
+contratos.forEach(c=>{
+
+totalP+=c.planeado;
+totalE+=c.ejecutado;
+
+equipos+=c.equipos.length;
+
+zonas[c.zona].p+=c.planeado;
+zonas[c.zona].e+=c.ejecutado;
+
+});
+
+document.getElementById("kpiContratos").innerText=
+contratos.length;
+
+document.getElementById("kpiEquipos").innerText=
+equipos;
+
+document.getElementById("kpiCumplimiento").innerText=
+((totalE/totalP)*100).toFixed(1)+"%";
+
+document.getElementById("kpiNorte").innerText=
+((zonas["Zona Norte"].e/zonas["Zona Norte"].p)*100).toFixed(1)+"%";
+
+document.getElementById("kpiCentro").innerText=
+((zonas["Zona Centro"].e/zonas["Zona Centro"].p)*100).toFixed(1)+"%";
+
+document.getElementById("kpiOccidente").innerText=
+((zonas["Zona Occidente"].e/zonas["Zona Occidente"].p)*100).toFixed(1)+"%";
+
+document.getElementById("kpiSur").innerText=
+((zonas["Zona Sur"].e/zonas["Zona Sur"].p)*100).toFixed(1)+"%";
+
+}
+
+function calcularVencimientos(){
+
+const hoy=
+new Date();
+
+const limite=
+new Date();
+
+limite.setMonth(
+limite.getMonth()+3
+);
+
+const total=
+contratos.filter(c=>{
+
+const fecha=
+new Date(c.fechaFin);
+
+return fecha>=hoy &&
+fecha<=limite;
+
+}).length;
+
+document.getElementById("kpiVencen")
+.innerText=total;
+
+}
+
+document
+.getElementById("buscar")
+.addEventListener("input",filtrar);
+
+document
+.getElementById("filtroZona")
+.addEventListener("change",filtrar);
+
+function filtrar(){
+
+const texto=
+document
+.getElementById("buscar")
+.value
+.toLowerCase();
+
+const zona=
+document
+.getElementById("filtroZona")
+.value;
+
+const resultado=
+contratos.filter(c=>{
+
+const coincideTexto=
+JSON.stringify(c)
+.toLowerCase()
+.includes(texto);
+
+const coincideZona=
+!zona ||
+c.zona===zona;
+
+return coincideTexto &&
+coincideZona;
+
+});
+
+cargarTabla(resultado);
+
+}
+
+new Chart(
+document.getElementById("grafica"),
+{
+type:"line",
+
+data:{
+
+labels:[
+"Ene","Feb","Mar","Abr",
+"May","Jun","Jul","Ago",
+"Sep","Oct","Nov","Dic"
+],
+
+datasets:[
+
+{
+label:"Total",
+data:[58,60,61,62,63,64,65,66,67,68,69,70],
+borderColor:"#004B93"
+},
+
+{
+label:"Zona Norte",
+data:[70,71,72,73,74,75,76,77,78,79,80,81],
+borderColor:"#28a745"
+},
+
+{
+label:"Zona Centro",
+data:[45,46,47,48,49,50,51,52,53,54,55,56],
+borderColor:"#ff9800"
+},
+
+{
+label:"Zona Occidente",
+data:[52,53,54,55,56,57,58,59,60,61,62,63],
+borderColor:"#9c27b0"
+},
+
+{
+label:"Zona Sur",
+data:[40,41,42,43,44,45,46,47,48,49,50,51],
+borderColor:"#dc3545"
+}
+
+]
+
+},
+
+options:{
+responsive:true,
+maintainAspectRatio:false,
+plugins:{
+legend:{
+position:"bottom"
+}
+}
+}
+
+}
+);
+
+actualizarKPIs();
+calcularVencimientos();
+cargarTabla(contratos);
+
+</script>
+
+</body>
+</html>
