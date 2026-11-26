@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Portal Gestión de Equipos F.E.A</title>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    display:flex;
+    height:100vh;
+    overflow:hidden;
+    background:#f4f6f8;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar{
+    width:300px;
+    background:#0D3B75;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    box-shadow:3px 0 12px rgba(0,0,0,.15);
+    transition:.3s;
+}
+
+.logo{
+    text-align:center;
+    padding:20px;
+    border-bottom:1px solid rgba(255,255,255,.15);
+}
+
+.logo img{
+    width:180px;
+}
+
+.user-panel{
+    padding:20px;
+    border-bottom:1px solid rgba(255,255,255,.15);
+}
+
+.user-panel h3{
+    font-size:16px;
+    margin-bottom:5px;
+    word-break:break-word;
+}
+
+.user-panel p{
+    color:#d7e6ff;
+    font-size:14px;
+}
+
+.menu{
+    list-style:none;
+    padding:15px;
+}
+
+.menu li{
+    margin-bottom:6px;
+}
+
+.menu a{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    text-decoration:none;
+    color:white;
+    padding:14px;
+    border-radius:10px;
+    transition:.2s;
+}
+
+.menu a:hover{
+    background:#1d4f96;
+}
+
+.menu a.active{
+    background:#1d4f96;
+}
+
+.menu i{
+    width:22px;
+    text-align:center;
+}
+
+.logout{
+    margin-top:auto;
+    padding:15px;
+}
+
+.logout button{
+    width:100%;
+    border:none;
+    padding:13px;
+    border-radius:10px;
+    cursor:pointer;
+    background:#dc2626;
+    color:white;
+    font-weight:600;
+}
+
+.logout button:hover{
+    background:#b91c1c;
+}
+
+/* =========================
+   CONTENIDO
+========================= */
+
+.main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+}
+
+.topbar{
+    background:white;
+    height:80px;
+    display:flex;
+    align-items:center;
+    padding:0 25px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    z-index:10;
+}
+
+.topbar h1{
+    color:#0D3B75;
+    font-size:22px;
+}
+
+.menu-toggle{
+    display:none;
+    background:none;
+    border:none;
+    color:#0D3B75;
+    font-size:24px;
+    cursor:pointer;
+    margin-right:15px;
+}
+
+.content{
+    flex:1;
+    padding:10px;
+}
+
+#contenido{
+    width:100%;
+    height:100%;
+    border:none;
+    border-radius:12px;
+    background:white;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:768px){
+
+    .sidebar{
+        position:fixed;
+        left:-300px;
+        top:0;
+        height:100%;
+        z-index:9999;
+    }
+
+    .sidebar.active{
+        left:0;
+    }
+
+    .menu-toggle{
+        display:block;
+    }
+
+    .topbar{
+        padding:0 15px;
+    }
+
+    .topbar h1{
+        font-size:18px;
+    }
+
+    #contenido{
+        height:calc(100vh - 100px);
+    }
+
+}
+
+@media(max-width:480px){
+
+    .sidebar{
+        width:260px;
+    }
+
+    .logo img{
+        width:140px;
+    }
+
+    .topbar h1{
+        font-size:16px;
+    }
+
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+    <div class="logo">
+<img
+src="https://images.seeklogo.com/logo-png/1/1/atlas-copco-service-logo-png_seeklogo-13057.png"
+alt="Atlas Copco">
+
+    </div>
+
+    <div class="user-panel">
+
+        <h3 id="email"></h3>
+
+        <p id="perfil"></p>
+
+    </div>
+
+    <ul id="menu" class="menu"></ul>
+
+    <div class="logout">
+
+        <button onclick="logout()">
+
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Cerrar Sesión
+
+        </button>
+
+    </div>
+
+</div>
+
+<!-- CONTENIDO -->
+
+<div class="main">
+
+    <div class="topbar">
+
+        <button
+            class="menu-toggle"
+            onclick="toggleMenu()">
+
+            <i class="fa-solid fa-bars"></i>
+
+        </button>
+
+        <h1>Portal Gestión de Equipos F.E.A</h1>
+
+    </div>
+
+    <div class="content">
+
+      <iframe
+    id="contenido"
+    src="about:blank"
+    style="
+        width:100%;
+        height:100%;
+        border:none;
+        border-radius:12px;
+        background:white;
+    ">
+</iframe>
+
+    </div>
+
+</div>
+
+<script>
+
+/* ====================================
+   VALIDAR SESION
+==================================== */
+
+const usuario =
+JSON.parse(sessionStorage.getItem("usuario"));
+
+if(!usuario){
+
+    window.location.href = "Login.html";
+
+}
+
+/* ====================================
+   DATOS USUARIO
+==================================== */
+
+document.getElementById("email").innerText =
+usuario.email;
+
+document.getElementById("perfil").innerText =
+"Perfil: " + usuario.perfil;
+
+/* ====================================
+   MENU SEGUN PERFIL
+==================================== */
+
+const menu =
+document.getElementById("menu");
+
+let opciones = [];
+
+switch(usuario.perfil.toUpperCase()){
+
+    case "ADMIN":
+
+    opciones = [
+
+        {
+            nombre: "Dashboard",
+            icono: "fa-solid fa-chart-line",
+            url: "pages/dashboard.html",
+            externa: false
+        },
+
+        {
+            nombre: "Administración de Contratos",
+            icono: "fa-solid fa-file-signature",
+            url: "https://jolarve28.github.io/SeguimientoTaller/admin_contratos.html",
+            externa: true
+        },
+         {
+            nombre: "Equipos Detenidos",
+            icono: "fa-solid fa-circle-stop",
+            url: "https://jolarve28.github.io/SeguimientoTaller/detenidos.html",
+            externa: true
+        },
+
+        {
+            nombre: "Flota de Respaldo",
+            icono: "fa-solid fa-truck",
+            url: "https://jolarve28.github.io/SeguimientoTaller/compresores.html",
+            externa: true
+        },
+
+        {
+            nombre: "Equipos en Taller",
+            icono: "fa-solid fa-screwdriver-wrench",
+            url: "https://jolarve28.github.io/SeguimientoTaller/Consulta.html",
+            externa: true
+        },
+
+       
+{
+    nombre: "Tickets",
+    icono: "fa-solid fa-ticket-simple",
+    url: "tickets.html",
+    externa: false
+},
+        {
+            nombre: "Mi Cuenta",
+            icono: "fa-solid fa-user-gear",
+            url: "pages/mi_cuenta.html",
+            externa: false
+        }
+
+    ];
+
+    break;
+case "CONTRATOS":
+
+    opciones = [
+
+        {
+            nombre: "Dashboard",
+            icono: "fa-solid fa-chart-line",
+            url: "pages/dashboard.html",
+            externa: false
+        },
+
+        {
+            nombre: "Administración de Contratos",
+            icono: "fa-solid fa-file-signature",
+            url: "https://jolarve28.github.io/SeguimientoTaller/admin_contratos.html",
+            externa: true
+        },
+
+        {
+            nombre: "Flota de Respaldo",
+            icono: "fa-solid fa-truck",
+            url: "https://jolarve28.github.io/SeguimientoTaller/compresores.html",
+            externa: true
+        },
+
+        {
+            nombre: "Equipos en Taller",
+            icono: "fa-solid fa-screwdriver-wrench",
+            url: "https://jolarve28.github.io/SeguimientoTaller/Consulta.html",
+            externa: true
+        },
+
+        {
+            nombre: "Equipos Detenidos",
+            icono: "fa-solid fa-circle-stop",
+            url: "https://jolarve28.github.io/SeguimientoTaller/detenidos.html",
+            externa: true
+        },
+{
+    nombre: "Tickets",
+    icono: "fa-solid fa-ticket-simple",
+    url: "https://jolarve28.github.io/SeguimientoTaller/tickets.html",
+    externa: true
+},
+        {
+            nombre: "Mi Cuenta",
+            icono: "fa-solid fa-user-gear",
+            url: "pages/mi_cuenta.html",
+            externa: false
+        }
+
+    ];
+
+    break;
+
+    case "SUPERVISOR":
+
+        opciones = [
+            {
+                nombre:"Dashboard",
+                icono:"fa-solid fa-chart-line",
+                url:"pages/dashboard.html",
+                externa:false
+            },
+            {
+                nombre:"Administración de Contratos",
+                icono:"fa-solid fa-file-signature",
+                url:"pages/dashboard.html",
+                externa:false
+            },
+            {
+                nombre:"Equipos Detenidos",
+                icono:"fa-solid fa-circle-stop",
+                url:"pages/detenidos.html",
+                externa:true
+            },
+            {
+                nombre:"Flota de Respaldo",
+                icono:"fa-solid fa-truck",
+                url:"pages/dashboard.html",
+                externa:true
+            },
+            {
+                nombre:"Equipos en Taller",
+                icono:"fa-solid fa-screwdriver-wrench",
+                url:"pages/dashboard.html",
+                externa:true
+            },
+            
+            {
+                nombre:"Mi Cuenta",
+                icono:"fa-solid fa-user",
+                url:"pages/cuenta.html",
+                externa:false
+            }
+        ];
+
+    break;
+
+case "VENDEDOR":
+
+        opciones = [
+            {
+                nombre:"Dashboard",
+                icono:"fa-solid fa-chart-line",
+                url:"pages/dashboard.html",
+                externa:false
+            },
+            {
+                nombre:"Administración de Contratos",
+                icono:"fa-solid fa-file-signature",
+                url:"pages/dashboard.html",
+                externa:false
+            },
+             {
+                nombre:"Equipos Detenidos",
+                icono:"fa-solid fa-circle-stop",
+                url:"pages/detenidos.html",
+                externa:true
+            },
+
+            {
+                nombre:"Flota de Respaldo",
+                icono:"fa-solid fa-truck",
+                url:"pages/dashboard.html",
+                externa:true
+            },
+            {
+                nombre:"Equipos en Taller",
+                icono:"fa-solid fa-screwdriver-wrench",
+                url:"pages/dashboard.html",
+                externa:true
+            },
+           
+            {
+                nombre:"Mi Cuenta",
+                icono:"fa-solid fa-user",
+                url:"pages/cuenta.html",
+                externa:false
+            }
+        ];
+
+    break;
+
+
+
+
+    default:
+
+        opciones = [
+            {
+                nombre:"Equipos en Taller",
+                icono:"fa-solid fa-screwdriver-wrench",
+                url:"pages/dashboard.html",
+                externa:true
+            },
+            {
+                nombre:"Flota de Respaldo",
+                icono:"fa-solid fa-truck",
+                url:"pages/dashboard.html",
+                externa:true
+            },
+            {
+                nombre:"Mi Cuenta",
+                icono:"fa-solid fa-user",
+                url:"pages/cuenta.html",
+                externa:false
+            }
+        ];
+
+    break;
+}
+/* ====================================
+   CREAR MENU
+==================================== */
+
+menu.innerHTML = opciones.map(item => `
+    <li>
+        <a href="#"
+           onclick="cargarPagina('${item.url}', this); return false;">
+
+            <i class="${item.icono}"></i>
+            <span>${item.nombre}</span>
+
+        </a>
+    </li>
+`).join('');
+
+/* ====================================
+   CARGAR PAGINAS INTERNAS
+==================================== */
+
+function cargarPagina(url, elemento){
+
+    document.getElementById("contenido").src = url;
+
+    document.querySelectorAll(".menu a").forEach(link=>{
+        link.classList.remove("active");
+    });
+
+    elemento.classList.add("active");
+
+    if(window.innerWidth <= 768){
+        document.querySelector(".sidebar")
+            .classList.remove("active");
+    }
+}
+/* ====================================
+   MENU RESPONSIVE
+==================================== */
+
+function toggleMenu(){
+
+    document
+        .querySelector(".sidebar")
+        .classList.toggle("active");
+
+}
+
+/* ====================================
+   CERRAR SESION
+==================================== */
+
+function logout(){
+
+    sessionStorage.clear();
+
+    window.location.href = "Login.html";
+
+}
+
+</script>
+
+</body>
+</html>
