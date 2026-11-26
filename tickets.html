@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard Gestión Tickets</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+    background:#eef2f7;
+    font-family:'Segoe UI',sans-serif;
+}
+
+.card{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.card-kpi{
+    color:white;
+    border-radius:18px;
+}
+
+.kpi-total{
+    background:linear-gradient(135deg,#0d6efd,#4f8cff);
+}
+
+.kpi-cerrado{
+    background:linear-gradient(135deg,#198754,#39c98a);
+}
+
+.kpi-progreso{
+    background:linear-gradient(135deg,#ff9800,#ffc107);
+}
+
+.kpi-abierto{
+    background:linear-gradient(135deg,#dc3545,#ff6b81);
+}
+
+.table{
+    font-size:13px;
+}
+
+canvas{
+    max-height:420px;
+}
+
+.progress{
+    height:24px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container-fluid p-4">
+
+<h1 class="mb-4">Dashboard Gestión Tickets</h1>
+
+<div class="card mb-4">
+<div class="card-body">
+
+<div class="row g-3">
+
+<div class="col-md-6">
+<input
+type="file"
+id="excelFile"
+class="form-control"
+accept=".xlsx,.xls">
+</div>
+
+<div class="col-md-3">
+<button
+class="btn btn-success w-100"
+onclick="importarExcel()">
+Importar Excel
+</button>
+</div>
+
+<div class="col-md-3">
+<button
+class="btn btn-primary w-100"
+onclick="cargarTickets()">
+Actualizar Dashboard
+</button>
+</div>
+
+</div>
+
+<div class="progress mt-3">
+<div
+id="barraCarga"
+class="progress-bar progress-bar-striped progress-bar-animated"
+style="width:0%">
+0%
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="row mb-4">
+
+<div class="col-md-3">
+<div class="card card-kpi kpi-total">
+<div class="card-body">
+<h6>Total Casos</h6>
+<h1 id="totalCasos">0</h1>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card card-kpi kpi-cerrado">
+<div class="card-body">
+<h6>Cerrados</h6>
+<h1 id="cerrados">0</h1>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card card-kpi kpi-progreso">
+<div class="card-body">
+<h6>En Progreso</h6>
+<h1 id="progreso">0</h1>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card card-kpi kpi-abierto">
+<div class="card-body">
+<h6>Abiertos</h6>
+<h1 id="abiertos">0</h1>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="row">
+
+<div class="col-lg-6 mb-4">
+<div class="card">
+<div class="card-body">
+<canvas id="estadoChart"></canvas>
+</div>
+</div>
+</div>
+
+<div class="col-lg-6 mb-4">
+<div class="card">
+<div class="card-body">
+<canvas id="agenteChart"></canvas>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="row mb-4">
+
+<div class="col-12">
+
+<div class="card">
+
+<div class="card-body">
+
+<canvas id="prioridadChart"></canvas>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+
+        <input
+            id="filtroGeneral"
+            type="text"
+            class="form-control form-control-lg"
+            placeholder="Buscar por ID, Estado, Agente, Prioridad o Resumen..."
+            oninput="filtrarDashboardDelay()"
+
+    </div>
+</div>
+
+
+
+
+
+<div class="card">
+
+<div class="card-header">
+<h4>Listado de Tickets</h4>
+</div>
+
+<div class="card-body table-responsive">
+
+<table class="table table-striped table-hover table-bordered">
+
+<thead class="table-dark">
+
+<tr>
+<th>ID</th>
+<th>Estado</th>
+<th>Agente</th>
+<th>Prioridad</th>
+<th>Resumen</th>
+</tr>
+
+</thead>
+
+<tbody id="tbodyTickets"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let ticketsData = [];
+const SUPABASE_URL =
+"https://tztuhdxkrdkhawknpmci.supabase.co";
+
+const SUPABASE_KEY =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHVoZHhrcmRraGF3a25wbWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTEwNDUsImV4cCI6MjEwMDkyNzA0NX0.Vgi5ZUffRo0i3zTnFuag3Dw7MUoJfyt3IWiD0de6_OA";
+
+let filtroTimer;
+
+function filtrarDashboardDelay(){
+
+    clearTimeout(filtroTimer);
+
+    filtroTimer = setTimeout(() => {
+
+        filtrarDashboard();
+
+    }, 250);
+
+}
+
+const supabaseClient =
+supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+let estadoChart;
+let agenteChart;
+let prioridadChart;
+
+function filtrarDashboard(){
+
+    const texto =
+        document
+        .getElementById("filtroGeneral")
+        .value
+        .toLowerCase()
+        .trim();
+
+    const filtrados =
+        ticketsData.filter(ticket =>
+
+            `
+            ${ticket.id || ""}
+            ${ticket.status_icon || ""}
+            ${ticket.Agent || ""}
+            ${ticket.Priority || ""}
+            ${ticket.Summary || ""}
+            `
+            .toLowerCase()
+            .includes(texto)
+
+        );
+
+    actualizarDashboard(filtrados);
+
+}
+
+
+async function importarExcel(){
+
+const archivo =
+document.getElementById("excelFile").files[0];
+
+if(!archivo){
+alert("Seleccione un archivo Excel");
+return;
+}
+
+if(!confirm(
+"Se borrarán todos los registros actuales."
+)){
+return;
+}
+
+try{
+
+const barra =
+document.getElementById("barraCarga");
+
+barra.style.width="20%";
+barra.innerText="Leyendo Excel";
+
+const buffer =
+await archivo.arrayBuffer();
+
+const workbook =
+XLSX.read(buffer,{type:"array"});
+
+const sheet =
+workbook.Sheets[
+workbook.SheetNames[0]
+];
+
+const registros =
+XLSX.utils.sheet_to_json(sheet,{
+defval:null
+});
+
+barra.style.width="50%";
+barra.innerText="Eliminando datos";
+
+const {error:deleteError} =
+await supabaseClient
+.from("tickets")
+.delete()
+.not("id","is",null);
+
+if(deleteError) throw deleteError;
+
+barra.style.width="75%";
+barra.innerText="Insertando";
+
+const chunkSize=500;
+
+for(
+let i=0;
+i<registros.length;
+i+=chunkSize
+){
+
+const lote =
+registros.slice(
+i,
+i+chunkSize
+);
+
+const {error} =
+await supabaseClient
+.from("tickets")
+.insert(lote);
+
+if(error) throw error;
+
+}
+
+barra.style.width="100%";
+barra.innerText="Completado";
+
+await cargarTickets();
+
+alert(
+registros.length +
+" registros cargados"
+);
+
+}
+catch(error){
+
+console.error(error);
+alert(error.message);
+
+}
+
+}
+
+
+
+
+async function cargarTickets(){
+
+const {data,error} =
+await supabaseClient
+.from("tickets")
+.select("*");
+
+if(error){
+console.error(error);
+return;
+}
+ticketsData = data;
+actualizarDashboard(data);
+return;
+
+let abiertos=0;
+let cerrados=0;
+let progreso=0;
+
+const estados={};
+const agentes={};
+const prioridades={};
+
+const tbody =
+document.getElementById("tbodyTickets");
+
+tbody.innerHTML="";
+
+document.getElementById(
+"totalCasos"
+).innerText=data.length;
+
+data.forEach(ticket=>{
+
+const estado =
+ticket.status_icon || "Sin Estado";
+
+estados[estado] =
+(estados[estado]||0)+1;
+
+const estadoLower =
+estado.toLowerCase();
+
+if(estadoLower.includes("open"))
+abiertos++;
+
+if(estadoLower.includes("closed"))
+cerrados++;
+
+if(
+estadoLower.includes("progress")
+||
+estadoLower.includes("pending")
+)
+progreso++;
+
+const agente =
+ticket.Agent || "Sin Asignar";
+
+agentes[agente] =
+(agentes[agente]||0)+1;
+
+const prioridad =
+ticket.Priority || "Sin Prioridad";
+
+prioridades[prioridad] =
+(prioridades[prioridad]||0)+1;
+
+tbody.innerHTML += `
+<tr>
+    <td>${ticket.id || ''}</td>
+    <td>${ticket.status_icon || ''}</td>
+    <td>${ticket.Agent || ''}</td>
+    <td>${ticket.Priority || ''}</td>
+    <td>${ticket.Summary || ''}</td>
+</tr>
+`;
+
+});
+
+document.getElementById(
+"abiertos"
+).innerText=abiertos;
+
+document.getElementById(
+"cerrados"
+).innerText=cerrados;
+
+document.getElementById(
+"progreso"
+).innerText=progreso;
+
+if(estadoChart)
+estadoChart.destroy();
+
+estadoChart =
+new Chart(
+document.getElementById("estadoChart"),
+{
+type:"doughnut",
+data:{
+labels:Object.keys(estados),
+datasets:[{
+data:Object.values(estados),
+backgroundColor:[
+"#dc3545",
+"#198754",
+"#ffc107",
+"#0d6efd",
+"#20c997",
+"#6610f2"
+]
+}]
+},
+options:{
+plugins:{
+title:{
+display:true,
+text:"Distribución por Estado"
+},
+legend:{
+position:"right"
+}
+}
+}
+}
+);
+
+if(agenteChart)
+agenteChart.destroy();
+
+const agentesOrdenados =
+Object.entries(agentes)
+.sort((a,b)=>b[1]-a[1]);
+
+agenteChart =
+new Chart(
+document.getElementById("agenteChart"),
+{
+type:"bar",
+data:{
+labels:
+agentesOrdenados.map(x=>x[0]),
+datasets:[{
+data:
+agentesOrdenados.map(x=>x[1]),
+backgroundColor:
+agentesOrdenados.map(x=>{
+
+if(x[1]>70)
+return "#198754";
+
+if(x[1]>40)
+return "#0d6efd";
+
+if(x[1]>20)
+return "#ffc107";
+
+return "#dc3545";
+
+})
+}]
+},
+options:{
+indexAxis:"y",
+plugins:{
+legend:{
+display:false
+},
+title:{
+display:true,
+text:"Top Agentes por Cantidad de Tickets"
+}
+}
+}
+}
+);
+
+if(prioridadChart)
+prioridadChart.destroy();
+
+prioridadChart =
+new Chart(
+document.getElementById("prioridadChart"),
+{
+type:"bar",
+data:{
+labels:
+Object.keys(prioridades),
+datasets:[{
+label:"Tickets",
+data:
+Object.values(prioridades),
+backgroundColor:[
+"#dc3545",
+"#ff9800",
+"#ffc107",
+"#198754",
+"#0d6efd"
+]
+}]
+},
+options:{
+plugins:{
+title:{
+display:true,
+text:"Distribución por Prioridad"
+}
+}
+}
+}
+);
+
+}
+function actualizarDashboard(data){
+
+    let abiertos = 0;
+    let cerrados = 0;
+    let progreso = 0;
+
+    const estados = {};
+    const agentes = {};
+    const prioridades = {};
+
+    const tbody =
+        document.getElementById(
+            "tbodyTickets"
+        );
+
+    tbody.innerHTML = "";
+
+    data.forEach(ticket => {
+
+        const estado =
+            ticket.status_icon ||
+            "Sin Estado";
+
+        estados[estado] =
+            (estados[estado] || 0) + 1;
+
+        const estadoLower =
+            estado.toLowerCase();
+
+        if(estadoLower.includes("open"))
+            abiertos++;
+
+        if(estadoLower.includes("closed"))
+            cerrados++;
+
+        if(
+            estadoLower.includes("progress") ||
+            estadoLower.includes("pending")
+        )
+            progreso++;
+
+        const agente =
+            ticket.Agent ||
+            "Sin Asignar";
+
+        agentes[agente] =
+            (agentes[agente] || 0) + 1;
+
+        const prioridad =
+            ticket.Priority ||
+            "Sin Prioridad";
+
+        prioridades[prioridad] =
+            (prioridades[prioridad] || 0) + 1;
+
+        tbody.innerHTML += `
+        <tr>
+            <td>${ticket.id || ''}</td>
+            <td>${ticket.status_icon || ''}</td>
+            <td>${ticket.Agent || ''}</td>
+            <td>${ticket.Priority || ''}</td>
+            <td>${ticket.Summary || ''}</td>
+        </tr>
+        `;
+    });
+
+    document.getElementById("totalCasos").innerText =
+        data.length;
+
+    document.getElementById("abiertos").innerText =
+        abiertos;
+
+    document.getElementById("cerrados").innerText =
+        cerrados;
+
+    document.getElementById("progreso").innerText =
+        progreso;
+
+    actualizarGraficoEstados(estados);
+    actualizarGraficoAgentes(agentes);
+    actualizarGraficoPrioridades(prioridades);
+}
+function actualizarGraficoEstados(estados){
+
+    if(estadoChart)
+        estadoChart.destroy();
+
+    estadoChart = new Chart(
+        document.getElementById("estadoChart"),
+        {
+            type:"doughnut",
+            data:{
+                labels:Object.keys(estados),
+                datasets:[{
+                    data:Object.values(estados),
+                    backgroundColor:[
+                        "#dc3545",
+                        "#198754",
+                        "#ffc107",
+                        "#0d6efd",
+                        "#20c997",
+                        "#6610f2"
+                    ]
+                }]
+            },
+            options:{
+                responsive:true,
+                plugins:{
+                    title:{
+                        display:true,
+                        text:"Distribución por Estado"
+                    },
+                    legend:{
+                        position:"right"
+                    }
+                }
+            }
+        }
+    );
+}
+function actualizarGraficoAgentes(agentes){
+
+    const agentesOrdenados =
+        Object.entries(agentes)
+        .sort((a,b)=>b[1]-a[1]);
+
+    if(agenteChart)
+        agenteChart.destroy();
+
+    agenteChart = new Chart(
+        document.getElementById("agenteChart"),
+        {
+            type:"bar",
+            data:{
+                labels:
+                    agentesOrdenados.map(x=>x[0]),
+                datasets:[{
+                    label:"Tickets",
+                    data:
+                        agentesOrdenados.map(x=>x[1]),
+
+                    backgroundColor:
+                        agentesOrdenados.map(x=>{
+
+                            if(x[1] > 70)
+                                return "#198754";
+
+                            if(x[1] > 40)
+                                return "#0d6efd";
+
+                            if(x[1] > 20)
+                                return "#ffc107";
+
+                            return "#dc3545";
+
+                        })
+                }]
+            },
+            options:{
+                indexAxis:"y",
+                plugins:{
+                    legend:{
+                        display:false
+                    },
+                    title:{
+                        display:true,
+                        text:"Top Agentes por Cantidad de Tickets"
+                    }
+                }
+            }
+        }
+    );
+}
+function actualizarGraficoPrioridades(prioridades){
+
+    if(prioridadChart)
+        prioridadChart.destroy();
+
+    prioridadChart = new Chart(
+        document.getElementById("prioridadChart"),
+        {
+            type:"bar",
+            data:{
+                labels:
+                    Object.keys(prioridades),
+
+                datasets:[{
+                    label:"Tickets",
+                    data:
+                        Object.values(prioridades),
+
+                    backgroundColor:[
+                        "#dc3545",
+                        "#ff9800",
+                        "#ffc107",
+                        "#198754",
+                        "#0d6efd"
+                    ]
+                }]
+            },
+            options:{
+                plugins:{
+                    title:{
+                        display:true,
+                        text:"Distribución por Prioridad"
+                    }
+                }
+            }
+        }
+    );
+}
+
+cargarTickets();
+
+</script>
+
+</body>
+</html>
